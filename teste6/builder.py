@@ -28,8 +28,8 @@ keyboard.properties(ControlType = 'Position')
 atrv.translate(x = 0, y = 0)
 atrv2.translate(x = 0, y = 1.5)
 atrv3.translate(x = 1.5, y = 1.5)
-atrv4.translate(x = 3, y = 1.5)
-atrv5.translate(x = 6, y = 1.5)
+atrv4.translate(x = 3.0, y = 1.5)
+atrv5.translate(x = 6.2, y = 1.5)
 
 # Add default interface for our robot's components
 atrv.add_default_interface('ros')
