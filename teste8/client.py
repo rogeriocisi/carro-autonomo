@@ -2,12 +2,13 @@
 import rospy
 from geometry_msgs.msg import PoseStamped
 from geometry_msgs.msg import Twist
+from sensor_msgs.msg import LaserScan
 
 estado = 0
 cmd = rospy.Publisher("/atrv/motion", Twist, queue_size=10)
 motion = Twist()
 
-def callback(msg):
+def callbackPose(msg):
 	global estado
 	position = msg.pose.position
 	if position.x < 5.5 and estado == 0:
@@ -30,6 +31,16 @@ def callback(msg):
 		motion.angular.z = 0
 	cmd.publish(motion)
 
+
+def callbackSick(msg):
+	global estado
+	if estado == 5:
+		estado = 6
+
 rospy.init_node("cliente")
-rospy.Subscriber("/atrv/pose", PoseStamped, callback)
+
+rospy.Subscriber("/atrv/pose", PoseStamped, callbackPose)
+rospy.Subscriber("/atrv/sick", LaserScan, callbackSick)
+
 rospy.spin() # this will block untill you hit Ctrl+C
+
