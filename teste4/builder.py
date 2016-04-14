@@ -14,6 +14,9 @@ atrv.append(pose)
 motion = MotionVW()
 atrv.append(motion)
 
+# steerforce = SteerForce()
+# atrv.append(steerforce)
+
 keyboard = Keyboard()
 atrv.append(keyboard)
 keyboard.properties(ControlType = 'Position')
