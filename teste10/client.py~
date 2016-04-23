@@ -10,14 +10,17 @@ from laser_geometry import LaserProjection
 def callbackPose(poseStamped):
 	global estado
 	global posX
-	global oriZ
+	global oriX
 	global espacoVazio
 
 	position = poseStamped.pose.position
 	orientation = poseStamped.pose.orientation
 	
 	posX = position.x
+	oriX = orientation.x
+	oriY = orientation.y
 	oriZ = orientation.z
+	oriW = orientation.w
 	
 	if estado == 0:
 		estado = 1
@@ -37,6 +40,8 @@ def callbackPose(poseStamped):
 		estado = 5
 		motion.linear.x = 0
 		motion.angular.z = 0
+
+	rospy.loginfo("oriX: %.1f	oriY: %.1f	oriZ: %.1f	oriW: %.1f" %(oriX, oriY, oriZ, oriW))
 
 	cmd.publish(motion)
 
@@ -70,7 +75,7 @@ def callbackScan(laserScan):
 	elif estadoCont == 1:
 		distX = posX - iniX
 		
-	rospy.loginfo("oriZ: %.1f	dist: %.1f	espaco: %.1f" %(oriZ, distX, espacoVazio))
+	#rospy.loginfo("dist: %.1f	espaco: %.1f" %(oriX, distX, espacoVazio))
 
 
 cmd = rospy.Publisher("/atrv/motion", Twist, queue_size=10)
@@ -83,7 +88,7 @@ estadoCont = 0
 posX = 0
 iniX = 0
 distX = 0
-oriZ = 0
+oriX = 0
 espacoVazio = 0
 
 laser_projector = LaserProjection()
