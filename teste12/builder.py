@@ -7,7 +7,7 @@ atrv3 = ATRV()
 atrv4 = ATRV()
 atrv5 = ATRV()
 
-atrv.translate(x = 0, y = 12)
+atrv.translate(x = 0, y = 12.2)
 atrv2.translate(x = 0, y = 13.4)
 atrv3.translate(x = 1.8, y = 13.4)
 atrv4.translate(x = 3.6, y = 13.4)
@@ -25,7 +25,7 @@ atrv.append(pose)
 sick = Sick()
 sick.translate(0, 0.4, 0.2) 
 sick.rotate(1.5, 0, 1.5)
-sick.frequency(10.0)
+sick.frequency(1.0)
 atrv.append(sick)
 # sick.add_stream("ros", topic='/sick')
 
@@ -42,7 +42,7 @@ atrv.add_default_interface('ros')
 # env = Environment('./estacionamento.blend')
 env = Environment('indoors-1/boxes')
 
-env._camera_location = [5, -10, 5]
+env._camera_location = [14, 10, 9]
 # env._camera_rotation = [0.7854, 0, 0.7854]
 
 
