@@ -17,17 +17,19 @@ pose = Pose()
 pose.translate(z = 0.75)
 atrv.append(pose)
 
-#cube = Cube('calcada')
-#cube.translate(x = 3.5, y = 2.6, z = -4.7)
-#cube.scale = (5, 0.5, .1)
-
 # add sick sensor
-sick = Sick()
-sick.translate(0, 0.4, 0.2) 
-sick.rotate(1.5, 0, 1.5)
-sick.frequency(10.0)
-atrv.append(sick)
-# sick.add_stream("ros", topic='/sick')
+sick1 = Sick()
+sick1.translate(0, 0.4, 0.2) 
+sick1.rotate(1.5, 0, 1.5)
+sick1.frequency(3.0)
+
+sick2 = Sick()
+sick2.translate(-0.6, 0, 0.2) 
+sick2.rotate(0, 1.5, 0)
+sick2.frequency(3.0)
+
+atrv.append(sick1)
+atrv.append(sick2)
 
 motion = MotionVW()
 atrv.append(motion)
