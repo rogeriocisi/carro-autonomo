@@ -9,7 +9,7 @@ import sys
 import sys
 
 comentario = ''
-i = 0;
+i = 0
 
 if len(sys.argv) > 1:
 	for arg in sys.argv:
