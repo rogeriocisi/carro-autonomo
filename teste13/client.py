@@ -32,12 +32,12 @@ def callbackPose(poseStamped):
 			motion.linear.x = -0.3
 			motion.angular.z = -0.2
 	if estado == 2:
-		if obstTraz < 0.25:
+		if obstTraz < 0.2:
 			estado = 3
 			motion.linear.x = -0.3
 			motion.angular.z = 0.3
 	if estado == 3:
-		if obstTraz < 0.2:
+		if obstTraz < 0.15:
 			estado = 4
 			motion.linear.x = 0.15
 			motion.angular.z = 0.3
@@ -100,7 +100,7 @@ def callbackScan(laserScan, tipo):
 		
 		#rospy.loginfo("obst-%s: %.1f oriZ: %.1f dist: %.1f esp: %.1f" %(tipo, obstEsq, oriZ, distX, espacoVazio))
 
-	elif tipo == 'tra' and pontos > 0:
+	elif (tipo == 'tr1' or tipo == 'tr2') and pontos > 0:
 		mediaX = (somaX)/pontos	
 		mediaY = (somaY)/pontos	
 		obstTraz = mediaX-mediaY
@@ -121,15 +121,20 @@ def callbackScanFrente(laserScan):
 	callbackScan(laserScan, 'fre')
 
 
-def callbackScanTrazeira(laserScan):
-	callbackScan(laserScan, 'tra')
+def callbackScanTraz1(laserScan):
+	callbackScan(laserScan, 'tr1')
+
+
+def callbackScanTraz2(laserScan):
+	callbackScan(laserScan, 'tr2')
 
 
 cmd = rospy.Publisher("/atrv/motion", Twist, queue_size=10)
 pos = rospy.Subscriber("/atrv/pose", PoseStamped, callbackPose)
 si1 = rospy.Subscriber("/atrv/sickEsq", LaserScan, callbackScanEsquerda)
 si2 = rospy.Subscriber("/atrv/sickFrente", LaserScan, callbackScanFrente)
-si3 = rospy.Subscriber("/atrv/sickTraz", LaserScan, callbackScanTrazeira)
+si3 = rospy.Subscriber("/atrv/sickTraz1", LaserScan, callbackScanTraz1)
+si4 = rospy.Subscriber("/atrv/sickTraz2", LaserScan, callbackScanTraz2)
 
 
 estado = 0
