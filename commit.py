@@ -9,9 +9,15 @@ import sys
 import sys
 
 comentario = ''
+i = 0;
 
-for arg in sys.argv:
-    comentario = comentario + ' ' + arg
+if len(sys.argv) > 1:
+	for arg in sys.argv:
+		if i > 0:
+			comentario = comentario + ' ' + arg
+		i = i + 1
+else:
+    comentario = 'atualizacao'
 
 pr = subprocess.Popen( "/usr/bin/git add *" , cwd = os.path.dirname( '/home/rogerio/carro-autonomo/' ), shell = True, stdout = subprocess.PIPE, stderr = subprocess.PIPE )
 (out, error) = pr.communicate()
