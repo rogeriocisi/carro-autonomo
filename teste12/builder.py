@@ -15,6 +15,7 @@ atrv5.translate(x = 7.5, y = 13.4)
 
 pose = Pose()
 pose.translate(z = 0.75)
+pose.frequency(2.0)
 atrv.append(pose)
 
 # add sick sensor
@@ -26,7 +27,7 @@ sick1.frequency(3.0)
 sick2 = Sick()
 sick2.translate(-0.6, 0, 0.2) 
 sick2.rotate(1.5, 0, 3.0)
-sick2.frequency(3.0)
+sick2.frequency(2.0)
 
 atrv.append(sick1)
 atrv.append(sick2)
