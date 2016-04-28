@@ -15,26 +15,26 @@ atrv5.translate(x = 7.5, y = 13.4)
 
 pose = Pose()
 pose.translate(z = 0.75)
-pose.frequency(2.0)
+pose.frequency(10.0)
 atrv.append(pose)
 
 # add sick sensors
 sickEsq = Sick()
 sickEsq.translate(0, 0.35, 0.2) 
 sickEsq.rotate(1.57, 0, 1.57)
-sickEsq.frequency(3.0)
+sickEsq.frequency(10.0)
 atrv.append(sickEsq)
 
 sickTraz = Sick()
 sickTraz.translate(-0.6, 0, 0.2) 
 sickTraz.rotate(1.57, 0, 3.14)
-sickTraz.frequency(2.0)
+sickTraz.frequency(10.0)
 atrv.append(sickTraz)
 
 sickFrente = Sick()
 sickFrente.translate(0.6, 0, 0.2) 
 sickFrente.rotate(1.57, 0, 0)
-sickFrente.frequency(2.0)
+sickFrente.frequency(10.0)
 atrv.append(sickFrente)
 
 motion = MotionVW()

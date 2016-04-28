@@ -24,28 +24,33 @@ def callbackPose(poseStamped):
 	
 	if estado == 0:
 		estado = 1
-		motion.linear.x = +0.5
-	if espacoVazio > 2 and estado == 1:
-		estado = 2
-		motion.linear.x = -0.3
-		motion.angular.z = -0.2
-	if obstTraz < 0.2 and estado == 2:
-		estado = 3
-		motion.angular.z = 0.3
-	if obstTraz < 0.1 and estado == 3:
-		estado = 4
-		motion.linear.x = 0.15
-		motion.angular.z = 0.3
-	if obstFrente < 0.1 and estado == 4:
-		estado = 5
-		motion.linear.x = 0.15
-		motion.angular.z = -0.3
-	if oriZ >= -0.05 and oriZ <= 0.05 and estado == 5:
-		estado = 6
-		motion.linear.x = 0
+		motion.linear.x = 1
 		motion.angular.z = 0
-
-	rospy.loginfo("estado: %d" %(estado))
+	if estado == 1:
+		if espacoVazio > 2:
+			estado = 2
+			motion.linear.x = -0.3
+			motion.angular.z = -0.2
+	if estado == 2:
+		if obstTraz < 0.25:
+			estado = 3
+			motion.linear.x = -0.3
+			motion.angular.z = 0.3
+	if estado == 3:
+		if obstTraz < 0.15:
+			estado = 4
+			motion.linear.x = 0.15
+			motion.angular.z = 0.3
+	if estado == 4:
+		if obstFrente < 0.15:
+			estado = 5
+			motion.linear.x = 0.15
+			motion.angular.z = -0.3
+	if estado == 5:
+		if oriZ >= -0.05 and oriZ <= 0.05:
+			estado = 6
+			motion.linear.x = 0
+			motion.angular.z = 0
 
 	cmd.publish(motion)
 
@@ -100,7 +105,7 @@ def callbackScan(laserScan, tipo):
 		mediaY = (somaY)/pontos	
 		obstTraz = mediaX-mediaY
 		
-		rospy.loginfo("obst-%s: %.1f oriZ: %.1f dist: %.1f esp: %.1f" %(tipo, obstTraz, oriZ, distX, espacoVazio))
+		#rospy.loginfo("obst-%s: %.1f oriZ: %.1f esp: %.1f" %(tipo, obstTraz, oriZ, espacoVazio))
 
 	elif tipo == 'fre' and pontos > 0:
 		mediaX = (somaX)/pontos	
