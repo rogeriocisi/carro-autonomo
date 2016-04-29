@@ -4,6 +4,7 @@ import sensor_msgs.point_cloud2 as pc2
 from geometry_msgs.msg import PoseStamped
 from geometry_msgs.msg import Twist
 from sensor_msgs.msg import LaserScan
+from sensor_msgs.msg import Range
 from laser_geometry import LaserProjection
 
 
@@ -22,35 +23,35 @@ def callbackPose(poseStamped):
 	posX = position.x
 	oriZ = orientation.z
 	
-	if estado == 0:
-		estado = 1
-		motion.linear.x = 1
-		motion.angular.z = 0
-	if estado == 1:
-		if espacoVazio > 2:
-			estado = 2
-			motion.linear.x = -0.3
-			motion.angular.z = -0.2
-	if estado == 2:
-		if obstTraz < 0.25:
-			estado = 3
-			motion.linear.x = -0.3
-			motion.angular.z = 0.3
-	if estado == 3:
-		if obstTraz < 0.2:
-			estado = 4
-			motion.linear.x = 0.15
-			motion.angular.z = 0.3
-	if estado == 4:
-		if obstFrente < 0.15:
-			estado = 5
-			motion.linear.x = 0.15
-			motion.angular.z = -0.3
-	if estado == 5:
-		if oriZ >= -0.05 and oriZ <= 0.05:
-			estado = 6
-			motion.linear.x = 0
-			motion.angular.z = 0
+#	if estado == 0:
+#		estado = 1
+#		motion.linear.x = 1
+#		motion.angular.z = 0
+#	if estado == 1:
+#		if espacoVazio > 2:
+#			estado = 2
+#			motion.linear.x = -0.3
+#			motion.angular.z = -0.2
+#	if estado == 2:
+#		if obstTraz < 0.15:
+#			estado = 3
+#			motion.linear.x = -0.3
+#			motion.angular.z = 0.3
+#	if estado == 3:
+#		if obstTraz < 0.1:
+#			estado = 4
+#			motion.linear.x = 0.15
+#			motion.angular.z = 0.3
+#	if estado == 4:
+#		if obstFrente < 0.15:
+#			estado = 5
+#			motion.linear.x = 0.15
+#			motion.angular.z = -0.3
+#	if estado == 5:
+#		if oriZ >= -0.02 and oriZ <= 0.02:
+#			estado = 6
+#			motion.linear.x = 0
+#			motion.angular.z = 0
 
 	cmd.publish(motion)
 
@@ -105,7 +106,7 @@ def callbackScan(laserScan, tipo):
 		mediaY = (somaY)/pontos	
 		obstTraz = mediaX-mediaY
 		
-		#rospy.loginfo("obst-%s: %.1f oriZ: %.1f esp: %.1f" %(tipo, obstTraz, oriZ, espacoVazio))
+		#rospy.loginfo("obst-%s: %.1f oriZ: %.1f" %(tipo, obstTraz, oriZ))
 
 	elif tipo == 'fre' and pontos > 0:
 		mediaX = (somaX)/pontos	
@@ -129,12 +130,41 @@ def callbackScanTraz2(laserScan):
 	callbackScan(laserScan, 'tr2')
 
 
+def callbackIR(infrared):
+	maxX = 0
+	minX = 0
+	minY = 0
+	maxY = 0
+	minZ = 0
+	maxZ = 0
+
+	point_cloud = laser_projector.projectLaser(infrared)
+
+	# calcula os pontos mínimo e máximo de detecção do laser
+	for p in pc2.read_points(point_cloud, field_names = ("x", "y", "z"), skip_nans=True):
+		if minX > p[0]:
+			minX = p[0]
+		if maxX < p[0]:
+			maxX = p[0]
+		if minY > p[1]:
+			minY = p[1]
+		if maxY < p[1]:
+			maxY = p[1]
+		if minZ > p[2]:
+			minZ = p[2]
+		if maxZ < p[2]:
+			maxZ = p[2]
+
+		rospy.loginfo("%.2f - %.2f # %.2f - %.2f # %.2f - %.2f" %(minX, maxX, minY, maxY, minZ, maxZ))
+
+
 cmd = rospy.Publisher("/atrv/motion", Twist, queue_size=10)
 pos = rospy.Subscriber("/atrv/pose", PoseStamped, callbackPose)
-si1 = rospy.Subscriber("/atrv/sickEsq", LaserScan, callbackScanEsquerda)
-si2 = rospy.Subscriber("/atrv/sickFrente", LaserScan, callbackScanFrente)
-si3 = rospy.Subscriber("/atrv/sickTraz1", LaserScan, callbackScanTraz1)
-si4 = rospy.Subscriber("/atrv/sickTraz2", LaserScan, callbackScanTraz2)
+ir1 = rospy.Subscriber("/atrv/infraredTraz1", LaserScan, callbackIR)
+#si1 = rospy.Subscriber("/atrv/sickEsq", LaserScan, callbackScanEsquerda)
+#si2 = rospy.Subscriber("/atrv/sickFrente", LaserScan, callbackScanFrente)
+#si3 = rospy.Subscriber("/atrv/infraredTraz1", LaserScan, callbackScanTraz1)
+#si4 = rospy.Subscriber("/atrv/sickTraz2", LaserScan, callbackScanTraz2)
 
 
 estado = 0
