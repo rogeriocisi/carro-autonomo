@@ -52,12 +52,20 @@ infraredEs1.max_range = 2.0
 atrv.append(infraredEs1)
 
 infraredEs2 = Infrared()
-infraredEs2.translate(0, 0.35, 0.2) 
+infraredEs2.translate(-0.54, 0.35, 0.2) 
 infraredEs2.rotate(0, 0, 1.57)
 infraredEs2.frequency(10.0)
 infraredEs2.min_range = 0.0
 infraredEs2.max_range = 2.0
 atrv.append(infraredEs2)
+
+infraredEs3 = Infrared()
+infraredEs3.translate(0.55, 0.35, 0.2) 
+infraredEs3.rotate(0, 0, 1.57)
+infraredEs3.frequency(10.0)
+infraredEs3.min_range = 0.0
+infraredEs3.max_range = 2.0
+atrv.append(infraredEs3)
 
 infraredTr1 = Infrared()
 infraredTr1.translate(-0.6, -0.3, 0.2) 

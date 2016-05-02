@@ -28,14 +28,14 @@ def callbackPose(poseStamped):
 	obstTrMin = min(obstTr)
 	obstEsqMin = min(obstEs)
 	
-	rospy.loginfo("est: %.d esq: %.1f fr: %.1f tr: %.1f oriZ: %.1f" %(estado, obstEsqMin, obstFrMin, obstTrMin, oriZ))
+	rospy.loginfo("est: %.d vaz: %.1f fr: %.1f tr: %.1f oriZ: %.1f" %(estado, espacoVazio, obstFrMin, obstTrMin, oriZ))
 
 	if estado == 0:
 		estado = 1
 		motion.linear.x = 1
 		motion.angular.z = 0
 	if estado == 1:
-		if espacoVazio > 2:
+		if espacoVazio > 2.2:
 			estado = 2
 			motion.linear.x = -0.3
 			motion.angular.z = -0.2
@@ -50,16 +50,12 @@ def callbackPose(poseStamped):
 			motion.linear.x = 0.15
 			motion.angular.z = 0.3
 	if estado == 4:
-		if oriZ >= -0.03 and oriZ <= 0.03:
-			estado = 5
-			motion.linear.x = 0.15
-			motion.angular.z = 0
-		if obstFrMin < 0.5 or obstEsqMin < 0.35:
+		if obstFrMin < 0.5 or obstEsqMin < 0.3:
 			estado = 5
 			motion.linear.x = 0.15
 			motion.angular.z = -0.3
 	if estado == 5:
-		if obstFrMin < 0.5 and oriZ >= -0.02 and oriZ <= 0.02:
+		if obstFrMin < 0.7 and oriZ >= -0.02 and oriZ <= 0.02:
 			estado = 6
 			motion.linear.x = 0
 			motion.angular.z = 0
@@ -74,7 +70,7 @@ def calculaEspacoParkAssist():
 	global estadoCont
 	global obstEs
 
-	# Utiliza o sensor obstEs[0] para o park assist
+	# Utiliza o sensor obstEs[1] para o park assist
 	# Se o laser não detectar obstáculo, inicia a contagem do espaço vazio
 	if estadoCont == 0 and obstEs[0] > 1.3:
 		estadoCont = 1	
@@ -114,7 +110,8 @@ def callbackIR(infrared, tipo):
 			calculaEspacoParkAssist()
 		elif tipo == 'es2':
 			obstEs[1] = maxX
-			calculaEspacoParkAssist()
+		elif tipo == 'es3':
+			obstEs[2] = maxX
 		elif tipo == 'fr1':
 			obstFr[0] = maxX
 		elif tipo == 'fr2':
@@ -135,6 +132,9 @@ def callbackIREs1(infrared):
 
 def callbackIREs2(infrared):
 	callbackIR(infrared, 'es2')
+
+def callbackIREs3(infrared):
+	callbackIR(infrared, 'es3')
 
 def callbackIRFr1(infrared):
 	callbackIR(infrared, 'fr1')
@@ -157,14 +157,15 @@ def callbackIRTr3(infrared):
 
 cmd = rospy.Publisher("/atrv/motion", Twist, queue_size=10)
 pos = rospy.Subscriber("/atrv/pose", PoseStamped, callbackPose)
-ir0 = rospy.Subscriber("/atrv/infraredEs1", LaserScan, callbackIREs1)
-ir1 = rospy.Subscriber("/atrv/infraredEs2", LaserScan, callbackIREs2)
-ir2 = rospy.Subscriber("/atrv/infraredFr1", LaserScan, callbackIRFr1)
-ir3 = rospy.Subscriber("/atrv/infraredFr2", LaserScan, callbackIRFr2)
-ir4 = rospy.Subscriber("/atrv/infraredFr3", LaserScan, callbackIRFr3)
-ir5 = rospy.Subscriber("/atrv/infraredTr1", LaserScan, callbackIRTr1)
-ir6 = rospy.Subscriber("/atrv/infraredTr2", LaserScan, callbackIRTr2)
-ir7 = rospy.Subscriber("/atrv/infraredTr3", LaserScan, callbackIRTr3)
+ie1 = rospy.Subscriber("/atrv/infraredEs1", LaserScan, callbackIREs1)
+ie2 = rospy.Subscriber("/atrv/infraredEs2", LaserScan, callbackIREs2)
+ie3 = rospy.Subscriber("/atrv/infraredEs3", LaserScan, callbackIREs3)
+if1 = rospy.Subscriber("/atrv/infraredFr1", LaserScan, callbackIRFr1)
+if2 = rospy.Subscriber("/atrv/infraredFr2", LaserScan, callbackIRFr2)
+if3 = rospy.Subscriber("/atrv/infraredFr3", LaserScan, callbackIRFr3)
+it1 = rospy.Subscriber("/atrv/infraredTr1", LaserScan, callbackIRTr1)
+it2 = rospy.Subscriber("/atrv/infraredTr2", LaserScan, callbackIRTr2)
+it3 = rospy.Subscriber("/atrv/infraredTr3", LaserScan, callbackIRTr3)
 #si1 = rospy.Subscriber("/atrv/sickEsq", LaserScan, callbackScanEsquerda)
 #si2 = rospy.Subscriber("/atrv/sickFrente", LaserScan, callbackScanFrente)
 #si3 = rospy.Subscriber("/atrv/infraredTraz1", LaserScan, callbackScanTraz1)
