@@ -98,7 +98,6 @@ def callbackIR(infrared, tipo):
 	global obstTr
 	global obstFr
 	global obstDi
-	global MAX_IR
 	closest = 0
 
 	# http://people.cornellcollege.edu/smikell15/MAX/code/follower.py.html        
@@ -108,19 +107,14 @@ def callbackIR(infrared, tipo):
 		if not np.isnan(dist):
 			depths.append(dist)
 
-	#scan.ranges is a tuple, and we want an array.
-	fullDepthsArray = infrared.ranges[:]
-
 	#If depths is empty that means we're way too close to an object to get a reading.
-	#thus establish our distance/position to nearest object as "0".
+	#thus establish our distance to nearest object as "0".
 	if len(depths) == 0:
 		closest = 0
 	else:
 		closest = min(depths)
 
-
 	#rospy.loginfo("closest: %.1f position: %.1f" %(closest, position))
-
 
 	if tipo == 'es1':
 		obstEs[0] = closest

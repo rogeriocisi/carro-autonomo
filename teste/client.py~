@@ -47,12 +47,12 @@ def callbackPose(poseStamped):
 			motion.linear.x = -0.3
 			motion.angular.z = -0.2
 	if estado == 2:
-		if obstTrMin < 0.5:
+		if obstTrMin < 0.6:
 			estado = 3
 			motion.linear.x = -0.3
 			motion.angular.z = 0.3
 	if estado == 3:
-		if obstTrMin < 0.3:
+		if obstTrMin < 0.4:
 			estado = 4
 			motion.linear.x = 0.15
 			motion.angular.z = 0.3
@@ -112,7 +112,7 @@ def callbackIR(infrared, tipo):
 	fullDepthsArray = infrared.ranges[:]
 
 	#If depths is empty that means we're way too close to an object to get a reading.
-	#thus establish our distance/position to nearest object as "0".
+	#thus establish our distance to nearest object as "0".
 	if len(depths) == 0:
 		closest = 0
 	else:
