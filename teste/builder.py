@@ -116,11 +116,13 @@ infraredTr3.max_range = 2.0
 atrv.append(infraredTr3)
 
 # add sick sensors
-#sick = Sick()
-#sick.translate(0, 0, 0.85) 
-#sick.rotate(0, 0, 0)
-#sick.frequency(5.0)
-#atrv.append(sick)
+sick = Sick()
+sick.translate(0, 0, 0.85) 
+sick.rotate(0, 0, 0)
+sick.frequency(5.0)
+#sick.properties(Visible_arc = True)
+sick.properties(laser_range = 50.0)
+atrv.append(sick)
 
 motion = MotionVW()
 atrv.append(motion)

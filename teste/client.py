@@ -7,231 +7,223 @@ from geometry_msgs.msg import PoseStamped
 from geometry_msgs.msg import Twist
 from sensor_msgs.msg import LaserScan
 from sensor_msgs.msg import Range
-from laser_geometry import LaserProjection
+
+
+class Controle:
+
+	def __init__(self):
+		self.cmd = rospy.Publisher("/atrv/motion", Twist, queue_size=10)
+		self.motion = Twist()
+
+		MAX_IR = 3
+		self.obstEs = [MAX_IR, MAX_IR, MAX_IR]
+		self.obstDi = [MAX_IR, MAX_IR, MAX_IR]
+		self.obstFr = [MAX_IR, MAX_IR, MAX_IR]
+		self.obstTr = [MAX_IR, MAX_IR, MAX_IR]
+		self.estado = 0
+		self.estadoCont = 0
+		self.espacoVazio = 0
+		self.posX = 0
+		self.iniX = 0
+		self.distX = 0
+		self.distLidar = 0
+
+
+	def mover(self)
+		# Obtem as distancias minimas dos 4 sensores da frente, traz, esquerda e direita
+		obstFrMin = min(self.obstFr)
+		obstTrMin = min(self.obstTr)
+		obstEsMin = min(self.obstEs)
+		obstDiMin = min(self.obstDi)
+
+		rospy.loginfo("li: %.1f fr: %.1f tr: %.1f es: %.1f di: %.1f oriX: %.3f" %(self.distLidar, obstFrMin, obstTrMin, obstEsMin, obstDiMin, self.oriZ))
+
+		# Para o carrinho antes de bater em um obstaculo a frente
+		if obstFrMin < 0.3 and self.motion.linear.x > 0:
+			self.motion.linear.x = 0
+
+		if self.estado == 0:
+			self.estado = 1
+			self.motion.linear.x = 1
+			self.motion.angular.z = 0
+		if self.estado == 1:
+			if self.espacoVazio > 2.2:
+				self.estado = 2
+				self.motion.linear.x = -0.3
+				self.motion.angular.z = -0.2
+		if self.estado == 2:
+			if obstTrMin < 0.6:
+				self.estado = 3
+				self.motion.linear.x = -0.3
+				self.motion.angular.z = 0.3
+		if self.estado == 3:
+			if obstTrMin < 0.4:
+				self.estado = 4
+				self.motion.linear.x = 0.15
+				self.motion.angular.z = 0.3
+		if self.estado == 4:
+			if obstFrMin < 0.4 or obstEsMin < 0.2:
+				self.estado = 5
+				self.motion.linear.x = 0.15
+				self.motion.angular.z = -0.3
+		if self.estado == 5:
+			if obstFrMin < 0.9 and self.oriZ >= -0.02 and self.oriZ <= 0.02:
+				self.estado = 6
+				self.motion.linear.x = 0
+				self.motion.angular.z = 0
+
+		self.cmd.publish(self.motion)
+
+
+	def calculaEspacoParkAssist(self):
+		# Utiliza o sensor obstEs[1] para o park assist
+		# Se o laser não detectar obstáculo, inicia a contagem do espaço vazio
+		if self.estadoCont == 0 and self.obstEs[0] > 1.3:
+			self.estadoCont = 1	
+			self.iniX = self.posX
+		# Se o laser detectar obstáculo, finaliza a contagem do espaço vazio
+		elif self.estadoCont == 1 and self.obstEs[0] < 0.7:
+			self.estadoCont = 0
+			self.espacoVazio = self.distX
+		# Se o estadoCont == 1, há um espaço vazio sendo mensurado
+		elif self.estadoCont == 1:
+			self.distX = self.posX - self.iniX
+	
+		#rospy.loginfo("obst: %.1f dist: %.1f esp: %.1f" %(obstEsq, distX, espacoVazio))
+
+
+	def callbackPose(self, poseStamped):
+		position = poseStamped.pose.position
+		orientation = poseStamped.pose.orientation
+		self.posX = position.x
+		self.oriZ = orientation.z
+		self.mover()
+
+
+	def callbackSick(self, laserScan):
+		depths = []
+		for dist in laserScan.ranges:
+			if not np.isnan(dist):
+				depths.append(dist)
+
+		if len(depths) == 0:
+			self.distLidar = 0
+		else:
+			self.distLidar = min(depths)
+
+
+	def callbackIR(self, infrared, tipo):
+		# http://people.cornellcollege.edu/smikell15/MAX        
+		# Build a depths array to rid ourselves of any nan data inherent in scan.ranges.
+		closest = 0
+		depths = []
+		for dist in infrared.ranges:
+			if not np.isnan(dist):
+				depths.append(dist)
+
+		#If depths is empty that means we're way too close to an object to get a reading.
+		#thus establish our distance to nearest object as "0".
+		if len(depths) == 0:
+			closest = 0
+		else:
+			closest = min(depths)
+
+		#rospy.loginfo("closest: %.1f position: %.1f" %(closest, position))
+
+		if tipo == 'es1':
+			self.obstEs[0] = closest
+			self.calculaEspacoParkAssist()
+		elif tipo == 'es2':
+			self.obstEs[1] = closest
+		elif tipo == 'es3':
+			self.obstEs[2] = closest
+		elif tipo == 'fr1':
+			self.obstFr[0] = closest
+		elif tipo == 'fr2':
+			self.obstFr[1] = closest
+		elif tipo == 'fr3':
+			self.obstFr[2] = closest
+		elif tipo == 'tr1':
+			self.obstTr[0] = closest
+		elif tipo == 'tr2':
+			self.obstTr[1] = closest
+		elif tipo == 'tr3':
+			self.obstTr[2] = closest
+		elif tipo == 'di1':
+			self.obstDi[0] = closest
+		elif tipo == 'di2':
+			self.obstDi[1] = closest
+		elif tipo == 'di3':
+			self.obstDi[2] = closest
 
 
 def callbackPose(poseStamped):
-	global estado
-	global posX
-	global espacoVazio
-	global obstEs
-	global obstDi
-	global obstTr
-	global obstFr
-
-	position = poseStamped.pose.position
-	orientation = poseStamped.pose.orientation
-	
-	posX = position.x
-	oriZ = orientation.z
-	oriX = orientation.x
-
-	# Obtem as distancias minimas dos 4 sensores da frente, traz, esquerda e direita
-	obstFrMin = min(obstFr)
-	obstTrMin = min(obstTr)
-	obstEsMin = min(obstEs)
-	obstDiMin = min(obstDi)
-
-	rospy.loginfo("%d fr: %.1f tr: %.1f es: %.1f di: %.1f oriX: %.1f" %(estado, obstFrMin, obstTrMin, obstEsMin, obstDiMin, oriX))
-
-	if obstFrMin < 0.3 and motion.linear.x > 0:
-		motion.linear.x = motion.linear.x/2
-
-	if estado == 0:
-		estado = 1
-		motion.linear.x = 1
-		motion.angular.z = 0
-	if estado == 1:
-		if espacoVazio > 2.2:
-			estado = 2
-			motion.linear.x = -0.3
-			motion.angular.z = -0.2
-	if estado == 2:
-		if obstTrMin < 0.6:
-			estado = 3
-			motion.linear.x = -0.3
-			motion.angular.z = 0.3
-	if estado == 3:
-		if obstTrMin < 0.4:
-			estado = 4
-			motion.linear.x = 0.15
-			motion.angular.z = 0.3
-	if estado == 4:
-		if obstFrMin < 0.4 or obstEsMin < 0.2:
-			estado = 5
-			motion.linear.x = 0.15
-			motion.angular.z = -0.3
-	if estado == 5:
-		if obstFrMin < 0.9 and oriZ >= -0.02 and oriZ <= 0.02:
-			estado = 6
-			motion.linear.x = 0
-			motion.angular.z = 0
-
-	cmd.publish(motion)
-
-
-def calculaEspacoParkAssist():
-	global iniX
-	global distX
-	global espacoVazio
-	global estadoCont
-	global obstEs
-
-	# Utiliza o sensor obstEs[1] para o park assist
-	# Se o laser não detectar obstáculo, inicia a contagem do espaço vazio
-	if estadoCont == 0 and obstEs[0] > 1.3:
-		estadoCont = 1	
-		iniX = posX
-	# Se o laser detectar obstáculo, finaliza a contagem do espaço vazio
-	elif estadoCont == 1 and obstEs[0] < 0.7:
-		estadoCont = 0
-		espacoVazio = distX
-	# Se o estadoCont == 1, há um espaço vazio sendo mensurado
-	elif estadoCont == 1:
-		distX = posX - iniX
-	
-	#rospy.loginfo("obst: %.1f dist: %.1f esp: %.1f" %(obstEsq, distX, espacoVazio))
-
-
-def callbackIR(infrared, tipo):
-	global obstEs
-	global obstTr
-	global obstFr
-	global obstDi
-	closest = 0
-
-	# http://people.cornellcollege.edu/smikell15/MAX/code/follower.py.html        
-	# Build a depths array to rid ourselves of any nan data inherent in scan.ranges.
-	depths = []
-	for dist in infrared.ranges:
-		if not np.isnan(dist):
-			depths.append(dist)
-
-	#If depths is empty that means we're way too close to an object to get a reading.
-	#thus establish our distance to nearest object as "0".
-	if len(depths) == 0:
-		closest = 0
-	else:
-		closest = min(depths)
-
-	#rospy.loginfo("closest: %.1f position: %.1f" %(closest, position))
-
-	if tipo == 'es1':
-		obstEs[0] = closest
-		calculaEspacoParkAssist()
-	elif tipo == 'es2':
-		obstEs[1] = closest
-	elif tipo == 'es3':
-		obstEs[2] = closest
-	elif tipo == 'fr1':
-		obstFr[0] = closest
-	elif tipo == 'fr2':
-		obstFr[1] = closest
-	elif tipo == 'fr3':
-		obstFr[2] = closest
-	elif tipo == 'tr1':
-		obstTr[0] = closest
-	elif tipo == 'tr2':
-		obstTr[1] = closest
-	elif tipo == 'tr3':
-		obstTr[2] = closest
-	elif tipo == 'di1':
-		obstDi[0] = closest
-	elif tipo == 'di2':
-		obstDi[1] = closest
-	elif tipo == 'di3':
-		obstDi[2] = closest
-
-
+	controle.callbackPose(poseStamped)
 
 def callbackIREs1(infrared):
-	callbackIR(infrared, 'es1')
+	controle.callbackIR(infrared, 'es1')
 
 def callbackIREs2(infrared):
-	callbackIR(infrared, 'es2')
+	controle.callbackIR(infrared, 'es2')
 
 def callbackIREs3(infrared):
-	callbackIR(infrared, 'es3')
+	controle.callbackIR(infrared, 'es3')
 
 def callbackIRFr1(infrared):
-	callbackIR(infrared, 'fr1')
+	controle.callbackIR(infrared, 'fr1')
 
 def callbackIRFr2(infrared):
-	callbackIR(infrared, 'fr2')
+	controle.callbackIR(infrared, 'fr2')
 
 def callbackIRFr3(infrared):
-	callbackIR(infrared, 'fr3')
+	controle.callbackIR(infrared, 'fr3')
 
 def callbackIRTr1(infrared):
-	callbackIR(infrared, 'tr1')
+	controle.callbackIR(infrared, 'tr1')
 
 def callbackIRTr2(infrared):
-	callbackIR(infrared, 'tr2')
+	controle.callbackIR(infrared, 'tr2')
 
 def callbackIRTr3(infrared):
-	callbackIR(infrared, 'tr3')
+	controle.callbackIR(infrared, 'tr3')
 
 def callbackIRDi1(infrared):
-	callbackIR(infrared, 'di1')
+	controle.callbackIR(infrared, 'di1')
 
 def callbackIRDi2(infrared):
-	callbackIR(infrared, 'di2')
+	controle.callbackIR(infrared, 'di2')
 
 def callbackIRDi3(infrared):
-	callbackIR(infrared, 'di3')
+	controle.callbackIR(infrared, 'di3')
 
-'''
 def callbackSick(laserScan):
-	point_cloud = laser_projector.projectLaser(laserScan)
-	minLaser = 0 
-	maxLaser = 0 
-
-	# calcula os pontos mínimo e máximo de detecção do laser
-	for p in pc2.read_points(point_cloud, field_names = ("x", "y", "z"), skip_nans=True):
-		if p[0] < minLaser:
-			minLaser = p[0] 
-		elif p[0] > maxLaser:
-			maxLaser = p[0] 
-		if p[1] < minLaser:
-			minLaser = p[1] 
-		elif p[1] > maxLaser:
-			maxLaser = p[1] 
-		
-	rospy.loginfo("minLaser: %.1f maxLaser: %.1f" %(minLaser, maxLaser))
-'''
-
-cmd = rospy.Publisher("/atrv/motion", Twist, queue_size=10)
-pos = rospy.Subscriber("/atrv/pose", PoseStamped, callbackPose)
-ie1 = rospy.Subscriber("/atrv/infraredEs1", LaserScan, callbackIREs1)
-ie2 = rospy.Subscriber("/atrv/infraredEs2", LaserScan, callbackIREs2)
-ie3 = rospy.Subscriber("/atrv/infraredEs3", LaserScan, callbackIREs3)
-if1 = rospy.Subscriber("/atrv/infraredFr1", LaserScan, callbackIRFr1)
-if2 = rospy.Subscriber("/atrv/infraredFr2", LaserScan, callbackIRFr2)
-if3 = rospy.Subscriber("/atrv/infraredFr3", LaserScan, callbackIRFr3)
-it1 = rospy.Subscriber("/atrv/infraredTr1", LaserScan, callbackIRTr1)
-it2 = rospy.Subscriber("/atrv/infraredTr2", LaserScan, callbackIRTr2)
-it3 = rospy.Subscriber("/atrv/infraredTr3", LaserScan, callbackIRTr3)
-di1 = rospy.Subscriber("/atrv/infraredDi1", LaserScan, callbackIRDi1)
-di2 = rospy.Subscriber("/atrv/infraredDi2", LaserScan, callbackIRDi2)
-di3 = rospy.Subscriber("/atrv/infraredDi3", LaserScan, callbackIRDi3)
-#sic = rospy.Subscriber("/atrv/sick", LaserScan, callbackSick)
+	controle.callbackSick(laserScan)
 
 
-estado = 0
-estadoCont = 0
-MAX_IR = 3
-posX = 0
-iniX = 0
-distX = 0
-obstEs = [MAX_IR, MAX_IR, MAX_IR]
-obstDi = [MAX_IR, MAX_IR, MAX_IR]
-obstFr = [MAX_IR, MAX_IR, MAX_IR]
-obstTr = [MAX_IR, MAX_IR, MAX_IR]
-espacoVazio = 0
+def listener():
+	# Initializes node, creates subscriber, and states callback functions
+	rospy.init_node('navigation_sensors')
+	rospy.loginfo("Subscriber Starting")
 
-laser_projector = LaserProjection()
-motion = Twist()
+	pos = rospy.Subscriber("/atrv/pose", PoseStamped, callbackPose)
+	ie1 = rospy.Subscriber("/atrv/infraredEs1", LaserScan, callbackIREs1)
+	ie2 = rospy.Subscriber("/atrv/infraredEs2", LaserScan, callbackIREs2)
+	ie3 = rospy.Subscriber("/atrv/infraredEs3", LaserScan, callbackIREs3)
+	if1 = rospy.Subscriber("/atrv/infraredFr1", LaserScan, callbackIRFr1)
+	if2 = rospy.Subscriber("/atrv/infraredFr2", LaserScan, callbackIRFr2)
+	if3 = rospy.Subscriber("/atrv/infraredFr3", LaserScan, callbackIRFr3)
+	it1 = rospy.Subscriber("/atrv/infraredTr1", LaserScan, callbackIRTr1)
+	it2 = rospy.Subscriber("/atrv/infraredTr2", LaserScan, callbackIRTr2)
+	it3 = rospy.Subscriber("/atrv/infraredTr3", LaserScan, callbackIRTr3)
+	di1 = rospy.Subscriber("/atrv/infraredDi1", LaserScan, callbackIRDi1)
+	di2 = rospy.Subscriber("/atrv/infraredDi2", LaserScan, callbackIRDi2)
+	di3 = rospy.Subscriber("/atrv/infraredDi3", LaserScan, callbackIRDi3)
+	sic = rospy.Subscriber("/atrv/sick", LaserScan, callbackSick)
 
-rospy.init_node("cliente")
-rospy.spin() # this will block untill you hit Ctrl+C
+	rospy.spin()
+
+
+if __name__ == "__main__":
+	controle = Controle()
+	listener()
 
