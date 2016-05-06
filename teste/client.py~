@@ -24,29 +24,26 @@ class Controle:
 		self.estadoCont = 0
 		self.espacoVazio = 0
 		self.posX = 0
+		self.oriZ = 0
 		self.iniX = 0
 		self.distX = 0
 		self.distLidar = 0
 
 
-	def callbackPose(self, poseStamped):
-		position = poseStamped.pose.position
-		orientation = poseStamped.pose.orientation
-		self.posX = position.x
-		self.oriZ = orientation.z
-
+	def mover(self):
 		# Obtem as distancias minimas dos 4 sensores da frente, traz, esquerda e direita
 		obstFrMin = min(self.obstFr)
 		obstTrMin = min(self.obstTr)
 		obstEsMin = min(self.obstEs)
 		obstDiMin = min(self.obstDi)
 
-		rospy.loginfo("li: %.1f fr: %.1f tr: %.1f es: %.1f di: %.1f oriX: %.3f" %(self.distLidar, obstFrMin, obstTrMin, obstEsMin, obstDiMin, self.oriZ))
+		rospy.loginfo("li: %.1f fr: %.1f tr: %.1f es: %.1f di: %.1f oriZ: %.3f" %(self.distLidar, obstFrMin, obstTrMin, obstEsMin, obstDiMin, self.oriZ))
 
-		# Para o carrinho antes de bater em um obstaculo a frente
+		# Parar o carrinho antes de bater em um obstaculo a frente
 		if obstFrMin < 0.3 and self.motion.linear.x > 0:
 			self.motion.linear.x = 0
 
+		# Algoritmo para estacionar o carrinho
 		if self.estado == 0:
 			self.estado = 1
 			self.motion.linear.x = 1
@@ -72,7 +69,7 @@ class Controle:
 				self.motion.linear.x = 0.15
 				self.motion.angular.z = -0.3
 		if self.estado == 5:
-			if obstFrMin < 0.9 and oriZ >= -0.02 and oriZ <= 0.02:
+			if obstFrMin < 0.9 and self.oriZ >= -0.02 and self.oriZ <= 0.02:
 				self.estado = 6
 				self.motion.linear.x = 0
 				self.motion.angular.z = 0
@@ -93,8 +90,15 @@ class Controle:
 		# Se o estadoCont == 1, há um espaço vazio sendo mensurado
 		elif self.estadoCont == 1:
 			self.distX = self.posX - self.iniX
-	
-		#rospy.loginfo("obst: %.1f dist: %.1f esp: %.1f" %(obstEsq, distX, espacoVazio))
+
+
+	def callbackPose(self, poseStamped):
+		position = poseStamped.pose.position
+		orientation = poseStamped.pose.orientation
+		self.posX = position.x
+		self.oriZ = orientation.z
+
+		self.mover()
 
 
 	def callbackSick(self, laserScan):
@@ -196,7 +200,6 @@ def callbackIRDi3(infrared):
 def callbackSick(laserScan):
 	controle.callbackSick(laserScan)
 
-
 def listener():
 	# Initializes node, creates subscriber, and states callback functions
 	rospy.init_node('navigation_sensors')
@@ -218,7 +221,6 @@ def listener():
 	sic = rospy.Subscriber("/atrv/sick", LaserScan, callbackSick)
 
 	rospy.spin()
-
 
 if __name__ == "__main__":
 	controle = Controle()
