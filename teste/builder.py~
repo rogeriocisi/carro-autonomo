@@ -8,6 +8,9 @@ atrv4 = ATRV()
 atrv5 = ATRV()
 
 atrv.translate(x = 0, y = 12.2)
+atrv.rotate(0, 0, 0)
+#atrv.translate(x = 8, y = 12.2)
+#atrv.rotate(0, 0, 3.14)
 atrv2.translate(x = 0, y = 13.4)
 atrv3.translate(x = 1.8, y = 13.4)
 atrv4.translate(x = 5.6, y = 13.4)
@@ -15,7 +18,7 @@ atrv5.translate(x = 7.6, y = 13.4)
 
 pose = Pose()
 pose.translate(z = 0.75)
-pose.frequency(5.0)
+pose.frequency(10.0)
 atrv.append(pose)
 
 # add infrared sensors
@@ -120,7 +123,7 @@ sick = Sick()
 sick.translate(0, 0, 0.85) 
 sick.rotate(0, 0, 0)
 sick.frequency(5.0)
-sick.properties(Visible_arc = True)
+#sick.properties(Visible_arc = True)
 sick.properties(laser_range = 50.0)
 atrv.append(sick)
 

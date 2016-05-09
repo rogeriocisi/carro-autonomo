@@ -29,6 +29,7 @@ class Controle:
 		self.iniX = 0
 		self.distX = 0
 		self.distLidar = 0
+		self.direcao = 1
 
 
 	def mover(self):
@@ -40,37 +41,37 @@ class Controle:
 
 		rospy.loginfo("li: %.1f fr: %.1f tr: %.1f es: %.1f di: %.1f oriZ: %.3f" %(self.distLidar, obstFrMin, obstTrMin, obstEsMin, obstDiMin, self.oriZ))
 
-		# Parar o carrinho antes de bater em um obstaculo a frente
-		if obstFrMin < 0.3 and self.motion.linear.x > 0:
-			self.motion.linear.x = 0
-
 		# Algoritmo para estacionar o carrinho
 		if self.estado == 0:
 			self.estado = 1
 			self.motion.linear.x = 1
 			self.motion.angular.z = 0
 		if self.estado == 1:
+			# Se estiver no sentido negativo do eixo X, inverte a variavel de direcao
+			if abs(self.oriZ) > 0.9:
+				self.direcao = -1
+
 			if self.espacoVazio > 2.2:
 				self.estado = 2
 				self.motion.linear.x = -0.3
-				self.motion.angular.z = -0.2
+				self.motion.angular.z = -0.2 * self.direcao
 		if self.estado == 2:
 			if obstTrMin < 0.6:
 				self.estado = 3
 				self.motion.linear.x = -0.3
-				self.motion.angular.z = 0.3
+				self.motion.angular.z = 0.3 * self.direcao
 		if self.estado == 3:
 			if obstTrMin < 0.4:
 				self.estado = 4
 				self.motion.linear.x = 0.15
-				self.motion.angular.z = 0.3
+				self.motion.angular.z = 0.3 * self.direcao
 		if self.estado == 4:
 			if obstFrMin < 0.4 or obstEsMin < 0.2:
 				self.estado = 5
 				self.motion.linear.x = 0.15
-				self.motion.angular.z = -0.3
+				self.motion.angular.z = -0.3 * self.direcao
 		if self.estado == 5:
-			if obstFrMin < 0.9 and self.oriZ >= -0.02 and self.oriZ <= 0.02:
+			if obstFrMin < 0.9 and (abs(self.oriZ) < 0.01 or abs(self.oriZ) > 0.999):
 				self.estado = 6
 				self.motion.linear.x = 0
 				self.motion.angular.z = 0
@@ -78,19 +79,19 @@ class Controle:
 		self.cmd.publish(self.motion)
 
 
-	def calculaEspacoParkAssist(self):
-		# Utiliza o sensor obstEs[1] para o park assist
-		# Se o laser não detectar obstáculo, inicia a contagem do espaço vazio
-		if self.estadoCont == 0 and self.obstEs[0] > 1.3:
+	def calculaEspacoParkAssist(self, distObst):
+		# Utiliza a medida distObst para o park assist
+		# Se o sensor não detectar obstáculo, inicia a contagem do espaço vazio
+		if self.estadoCont == 0 and distObst > 1.3:
 			self.estadoCont = 1	
 			self.iniX = self.posX
-		# Se o laser detectar obstáculo, finaliza a contagem do espaço vazio
-		elif self.estadoCont == 1 and self.obstEs[0] < 0.7:
+		# Se o sensor detectar obstáculo, finaliza a contagem do espaço vazio
+		elif self.estadoCont == 1 and distObst < 0.8:
 			self.estadoCont = 0
 			self.espacoVazio = self.distX
 		# Se o estadoCont == 1, há um espaço vazio sendo mensurado
 		elif self.estadoCont == 1:
-			self.distX = self.posX - self.iniX
+			self.distX = abs(self.posX - self.iniX)
 
 
 	def callbackPose(self, poseStamped):
@@ -134,11 +135,22 @@ class Controle:
 
 		if tipo == 'es1':
 			self.obstEs[0] = closest
-			self.calculaEspacoParkAssist()
+			# Se estiver trafegando no sentido positivo do eixo X
+			if abs(self.oriZ) < 0.1 and self.estado <= 1:
+				self.calculaEspacoParkAssist(self.obstEs[0])
+		elif tipo == 'di1':
+			self.obstDi[0] = closest
+			# Se estiver trafegando no sentido negativo do eixo X
+			if abs(self.oriZ) > 0.9 and self.estado <= 1:
+				self.calculaEspacoParkAssist(self.obstDi[0])
 		elif tipo == 'es2':
 			self.obstEs[1] = closest
 		elif tipo == 'es3':
 			self.obstEs[2] = closest
+		elif tipo == 'di2':
+			self.obstDi[1] = closest
+		elif tipo == 'di3':
+			self.obstDi[2] = closest
 		elif tipo == 'fr1':
 			self.obstFr[0] = closest
 		elif tipo == 'fr2':
@@ -151,12 +163,6 @@ class Controle:
 			self.obstTr[1] = closest
 		elif tipo == 'tr3':
 			self.obstTr[2] = closest
-		elif tipo == 'di1':
-			self.obstDi[0] = closest
-		elif tipo == 'di2':
-			self.obstDi[1] = closest
-		elif tipo == 'di3':
-			self.obstDi[2] = closest
 
 
 def callbackPose(poseStamped):
