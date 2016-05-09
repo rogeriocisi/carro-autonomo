@@ -39,9 +39,9 @@ class Controle:
 		obstEsMin = min(self.obstEs)
 		obstDiMin = min(self.obstDi)
 
-		rospy.loginfo("%d fr: %.1f tr: %.1f es: %.1f di: %.1f oriZ: %.3f" %(self.estado, obstFrMin, obstTrMin, obstEsMin, obstDiMin, self.oriZ))
+		rospy.loginfo("li: %.1f fr: %.1f tr: %.1f es: %.1f di: %.1f oriZ: %.3f" %(self.distLidar, obstFrMin, obstTrMin, obstEsMin, obstDiMin, self.oriZ))
 
-		# Algoritmo do park assist
+		# Algoritmo para estacionar o carrinho
 		if self.estado == 0:
 			self.estado = 1
 			self.motion.linear.x = 1
@@ -61,18 +61,17 @@ class Controle:
 				self.motion.linear.x = -0.3
 				self.motion.angular.z = 0.3 * self.direcao
 		if self.estado == 3:
-			if obstTrMin < 0.3:
+			if obstTrMin < 0.4:
 				self.estado = 4
 				self.motion.linear.x = 0.15
 				self.motion.angular.z = 0.3 * self.direcao
 		if self.estado == 4:
-			if obstFrMin < 0.3:
+			if obstFrMin < 0.4 or obstEsMin < 0.2:
 				self.estado = 5
 				self.motion.linear.x = 0.15
 				self.motion.angular.z = -0.3 * self.direcao
-
-		if self.estado >= 3 and (abs(self.oriZ) < 0.02 or abs(self.oriZ) > 0.9999):
-			if (self.direcao == 1 and obstEsMin < 0.6) or (self.direcao == -1 and obstDiMin < 0.6):
+		if self.estado == 5:
+			if obstFrMin < 0.9 and (abs(self.oriZ) < 0.01 or abs(self.oriZ) > 0.99):
 				self.estado = 6
 				self.motion.linear.x = 0
 				self.motion.angular.z = 0
