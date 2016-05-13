@@ -65,7 +65,6 @@ class Controle:
 				self.estado = 4
 				self.motion.linear.x = 0.15
 				self.motion.angular.z = 0.3 * self.direcao
-
 		if self.estado == 4:
 			if (abs(self.oriZ) < 0.02 or abs(self.oriZ) > 0.9999) and ((self.direcao == 1 and obstEsMin < 0.6) or (self.direcao == -1 and obstDiMin < 0.6)):
 				self.estado = 6
