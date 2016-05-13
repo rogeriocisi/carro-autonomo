@@ -61,12 +61,12 @@ class Controle:
 				self.motion.linear.x = -0.3
 				self.motion.angular.z = 0.3 * self.direcao
 		if self.estado == 3:
-			if obstTrMin <= 0.3:
+			if obstTrMin < 0.3:
 				self.estado = 4
 				self.motion.linear.x = 0.15
 				self.motion.angular.z = 0.3 * self.direcao
 		if self.estado == 4:
-			if obstFrMin <= 0.3:
+			if obstFrMin < 0.3:
 				self.estado = 5
 				self.motion.linear.x = 0.15
 				self.motion.angular.z = -0.3 * self.direcao
