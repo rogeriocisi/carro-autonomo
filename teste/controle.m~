@@ -84,16 +84,14 @@ omg7 = trimf(omega, [0.4 0.7 1]); % alto_antihorario
 
 % ========Aplicando as Regras========
 % R1: if(CurbDist is far & orientacao is alto_horario) -> omega = straight;
-% R2: if(CurbDist is far & orientacao is baixo_horario) -> omega = baixo_antihorario;
-% R3: if(CurbDist is far & orientacao is baixo_antihorario) -> omega = baixo_horario;
-% R4: if(CurbDist is far & orientacao is alto_antihorario) -> omega = alto_horario;
-% R5: if(CurbDist is close & orientacao is baixo_horario or alto_horario) -> omega = baixo_antihorario;
-% R6: if(CurbDist is close & orientacao is baixo_antihorario or alto_antihorario) -> omega = baixo_horario;
-% R7: if(CurbDist is touching) -> steering_backward = straight;
 R1 = fuzzificar (dist1, orient4, omg1);
+% R2: if(CurbDist is far & orientacao is baixo_horario) -> omega = alto_antihorario;
 R2 = fuzzificar (dist1, orient2, omg2);
+% R3: if(CurbDist is close & orientacao is baixo_antihorario) -> omega = straight;
 R3 = fuzzificar (dist2, orient3, omg3);
+% R4: if(CurbDist is close & orientacao is baixo_antihorario) -> omega = baixo_horario;
 R4 = fuzzificar (dist2, orient4, omg4);
+% R5: if(CurbDist is touching) -> steering_backward = straight;
 R5 = fuzzificar (dist3, orient5, omg5);
  
 % Agregação das regras

@@ -48,27 +48,8 @@ class Controle:
 		obstEs = min(self.obstEs)
 		obstDi = min(self.obstDi)
 
-		if self.estado == 0:
-			self.estado = 1
-			self.motion.linear.x = 1
-			self.motion.angular.z = 0
-		if self.estado == 1:
-			self.estado = 1
-			# Se estiver no sentido negativo do eixo X, inverte a variavel de direcao
-			if abs(self.oriZ) > 0.9:
-				self.direcao = -1
-
-		if self.estado == 2:
-			# Algoritmo do park assist
-			if self.espacoVazio > 2.2:
-				self.estado = 3
-
-		if self.estado == 3:
-			linear, angular = octave.teste_controle(obstFr, obstTr, obstCurb, self.oriZ)
-			rospy.loginfo("linear: %f angular: %f" %(linear, angular))
-			self.motion.linear.x = linear
-			self.motion.angular.z = angular
-
+		linear, angular = octave.teste_controle(obstFr, obstTr, obstEs, obstDi, self.oriZ)
+		rospy.loginfo("linear: %f angular: %f" %(linear, angular))
 
 		# rospy.loginfo("%d fr: %.1f tr: %.1f es: %.1f di: %.1f oriZ: %.3f" %(self.estado, obstFr, obstTr, obstEs, obstDi, self.oriZ))
 

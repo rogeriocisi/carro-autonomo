@@ -2,7 +2,7 @@
 
 % clear all
  
-function [vlinear, vangular] = controle (obstFr, obstTr, obstEs, obstDi, direcao, oriZ)
+function [vlinear, vangular] = controle (obstFr, obstTr, obstEs, obstDi, oriZ)
  
 vlinear = -0.5;
 vangular = -0.5;
