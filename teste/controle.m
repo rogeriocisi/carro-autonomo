@@ -1,4 +1,4 @@
-%% ===============Problema da Gorjeta====================
+%% ============Controle da velocidade linear e angular do carro=================
 %
 % Sistema Mamdani
 % andMethod: 'min'
@@ -8,45 +8,80 @@
 % aggMethod: 'max'
  
 % ========REGRAS============
-% IF antecedentes THEN consequente
-% If service is poor or the food is rancid, then tip is cheap
-% If service is good, then tip is average
-% If service is excellent or food is delicious, then tip is generous
+%{
+Distance -> Desired_Orientation
+
+1. Backward strategy
+1.1 Far -> L3
+1.1.1 if(CurbDist == far & angle < L3) -> steering_backward = R3;
+1.1.2 if(CurbDist == far & angle > L3) -> steering_backward = L3;
+1.1.3 if(CurbDist == far & angle == L3) -> steering_backward = straight;
+1.2 Close -> L1
+1.3 Touching -> Straight
+
+2. Forward approaching the curb
+2.1 Far -> R2
+2.2 Close -> R2
+2.3 Touching -> Straight
+
+3. Forward moving away from the rear obstacle
+3.1 Far -> Straight
+3.1.1 if(CurbDist == far & angle > straight) -> steering_fw_mov_away = L3;
+3.1.2 if(CurbDist== far & angle==straight) -> steering_fw_mov_away = straight;
+3.1.3 if(CurbDist == far & angle < straight) -> steering_fw_mov_away = R3;
+
+4. Strategy selector
+This rule base, or inference engine, decides which one of the three strategies must be applied. The
+reasoning is as follows,
+· If the car is touching the curb and its orientation is straight, then stop; it is successfully parked.
+· If there is enough back space, then go backward.
+· If the back obstacle is really near and the car is close to (or near) the curb, then go forward
+towards the curb.
+· If the back obstacle is really near and the car is far from the curb, then go forward moving away
+from the rear obstacle.
+%}
 % ==========================
-clear all
-pkg load fuzzy-logic-toolkit
+
+% clear all
+ 
+function [vlinear, vangular] = controle (service, food)
+ 
  
 % Valores de entrada do sistema
-% [service food]
-input = [3 3];
+% [CurbDist Angle]
+input = [3 0.5];
  
-% 3 regras com dois antecedentes e 1 consequente.
+% Regras com dois antecedentes e 1 consequente.
  
 %% Fuzzificação
 % Aqui esta etapa ocorre junto com a declaração das funções de pertinência
 % Como
  
-% SERVICE
 % Nomenclatura das variáveis
 % service degree rule N -&gt; dsrN
 % Grau de Pertinência do Serviço Regra N
  
-% Ao entrar com a variável na função gaussmf() eu já tenho a fuzzificação, ou seja, o grau de pertinência deste valor ao Conjunto Fuzzy SERVICE.
-% Se eu tivesse dado o intervalo de x, neste caso de 0 a 10, à função gaussmf() eu teria uma curva representando a FP do Conjunto Fuzzy SERVICE.
-sdr1 = gaussmf(input(1), [1.5 0]); % POOR SERVICE
-sdr2 = gaussmf(input(1), [1.5 5]); % GOOD SERVICE
-sdr3 = gaussmf(input(1), [1.5 10]); % EXCELLENT SERVICE
+% CurbDist
+% Ao entrar com a variável na função gaussmf() eu já tenho a fuzzificação, ou seja, o grau de pertinência deste valor ao Conjunto Fuzzy CurbDist.
+% Se eu tivesse dado o intervalo de x, neste caso de 0 a 1000 às funcoes trapmf, eu teria uma curva representando a FP do Conjunto Fuzzy CurbDist.
+sdr1 = trapmf(input(1), [0 0.1 0.3 0.5]); % Touching
+sdr2 = trapmf(input(1), [0.4 0.7 1.2 2.5]); % Close
+sdr3 = trapmf(input(1), [2 2.5 999 1000]); % Far
  
-% FOOD
-% Mesma explicação da de cima, mas para uma função de pertinência trapezoidal que representa o Conjunto Fuzzy FOOD.
-fdr1 = trapmf(input(2), [0 0.1 1 3]); % RANCID FOOD
-fdr2 = trapmf(input(2), [7 9 9.9 10 ]); % DELICIOUS FOOD
+% Angle
+% Mesma explicação da de cima, mas para uma função de pertinência que representa o Conjunto Fuzzy Angle (-pi/2 a pi/2).
+fdr1 = trapmf(input(2), [-1.57 -1.4 -1 -0.9]); % L3
+fdr2 = trapmf(input(2), [-1 -0.9 -0.5 -0.4]); % L2
+fdr3 = trapmf(input(2), [-0.5 -0.4 -0.2 -0.05]); % L1
+fdr4 = trapmf(input(2), [-0.1 -0.05 0.05 0.1]); % Straight
+fdr5 = trapmf(input(2), [0.05 0.2 0.4 0.5]); % R1
+fdr6 = trapmf(input(2), [0.4 0.5 0.9 1]); % R2
+fdr7 = trapmf(input(2), [0.9 1 1.4 1.57]); % R3
  
-% TIP
-% Porcentagem da Gorjeta (0%-30%)
-x2 = 0:0.1:30;
+% Saida: Velocidade Angular (-1 a 1)
+x2 = -1:0.0.5:1;
 % Aqui a situação é diferente. Como o consequente representa a minha saída no formato de um conjunto Fuzzy
-% eu não quero entrar com um simples valor na função, eu entro com o domínio (0-30) da minha função de pertinência.
+% eu não quero entrar com um simples valor na função, eu entro com o domínio (-1 a 1) da minha função de pertinência.
 % Mais embaixo eu explico o porquê.
 tdr1 = trimf(x2, [0 5 10]); % CHEAP TIP
 tdr2 = trimf(x2, [10 15 20]); % AVERAGE TIP
@@ -105,5 +140,7 @@ output = max(R1,max(R2,R3));
 % Aqui usamos o método da Centróide, mas existem outros.
  
 tip = defuzz(x2,output,'centroid')
- 
+  
+endfunction
+
 % ====EOF====

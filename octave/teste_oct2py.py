@@ -1,11 +1,15 @@
 from oct2py import octave
 
-'''
-import numpy as np
-x = np.array([[1, 2], [3, 4]], dtype=float)
-out, oclass = octave.roundtrip(x)
-import pprint
-pprint.pprint([x, x.dtype, out, oclass, out.dtype])
-''''
+saida = octave.fgorjeta(1,2)
+print("Gorjeta: ", saida)
+
+saida = octave.fgorjeta(5,9)
+print("Gorjeta: ", saida)
+
+saida = octave.fgorjeta(5,5)
+print("Gorjeta: ", saida)
+
+saida = octave.fgorjeta(10,1)
+print("Gorjeta: ", saida)
 
 

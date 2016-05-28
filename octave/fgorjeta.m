@@ -13,12 +13,15 @@
 % If service is good, then tip is average
 % If service is excellent or food is delicious, then tip is generous
 % ==========================
-clear all
+
+function [tip] = fgorjeta (service, food)
+
 pkg load fuzzy-logic-toolkit
+% clear all
  
 % Valores de entrada do sistema
-% [service food]
-input = [3 3];
+% [1 3]
+input = [service food];
  
 % 3 regras com dois antecedentes e 1 consequente.
  
@@ -106,4 +109,5 @@ output = max(R1,max(R2,R3));
  
 tip = defuzz(x2,output,'centroid')
  
+endfunction
 % ====EOF====
