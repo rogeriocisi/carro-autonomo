@@ -47,15 +47,22 @@ class Controle:
 		obstTr = min(self.obstTr)
 		obstEs = min(self.obstEs)
 		obstDi = min(self.obstDi)
-		obstCurb = obstEs
 
+		distObst = obstEs
 		if self.direcao == -1:
-			obstCurb = obstDir
+			distObst = obstDir
 
+		if self.motion.linear.x > 0:
+			distObst = min(distObst, obstFr)
+		else:
+			distObst = min(distObst, obstTr)
+
+		'''
 		if self.estado == 0:
 			self.estado = 1
 			self.motion.linear.x = 1
 			self.motion.angular.z = 0
+
 		if self.estado == 1:
 			self.estado = 2
 			# Se estiver no sentido negativo do eixo X, inverte a variavel de direcao
@@ -68,12 +75,15 @@ class Controle:
 
 		if self.estado == 3:
 			# Park assist via fuzzy
-			linear, angular = octave.teste_controle(obstFr, obstTr, obstCurb, self.direcao, self.oriZ)
-			rospy.loginfo("linear: %f angular: %f" %(linear, angular))
+			angular = octave.controle(distObst, self.oriZ)
 			self.motion.linear.x = linear
 			self.motion.angular.z = angular
+		'''
 
+		angular = octave.controle(distObst, self.oriZ)
+		rospy.loginfo("lin: %.1f ang: %.1f dis: %.1f ori: %.1f" %(self.motion.linear.x, angular, distObst, self.oriZ))
 
+		# rospy.loginfo("lin: %.1f ang: %.1f dis: %.1f ori: %.1f" %(self.motion.linear.x, self.motion.angular.z, distObst, self.oriZ))
 		# rospy.loginfo("%d fr: %.1f tr: %.1f es: %.1f di: %.1f oriZ: %.3f" %(self.estado, obstFr, obstTr, obstEs, obstDi, self.oriZ))
 
 		# self.motion.linear.x = ???
