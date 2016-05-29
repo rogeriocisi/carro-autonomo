@@ -14,7 +14,6 @@
 % If service is excellent or food is delicious, then tip is generous
 % ==========================
 clear all
-
 pkg load fuzzy-logic-toolkit
  
 % Valores de entrada do sistema
