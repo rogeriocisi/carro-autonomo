@@ -80,8 +80,13 @@ class Controle:
 			self.motion.angular.z = angular
 		'''
 
-		rospy.loginfo("lin: %.1f ang: %.1f dis: %.1f ori: %.1f" %(self.motion.linear.x, self.motion.angular.z, distObst, self.oriZ))
+		# angular = octave.controle(distObst, self.oriZ)
+		angular = 0
+		self.motion.angular.z = -1
 
+		rospy.loginfo("lin: %.1f ang: %.1f dis: %.1f ori: %.1f" %(self.motion.linear.x, angular, distObst, self.oriZ))
+
+		# rospy.loginfo("lin: %.1f ang: %.1f dis: %.1f ori: %.1f" %(self.motion.linear.x, self.motion.angular.z, distObst, self.oriZ))
 		# rospy.loginfo("%d fr: %.1f tr: %.1f es: %.1f di: %.1f oriZ: %.3f" %(self.estado, obstFr, obstTr, obstEs, obstDi, self.oriZ))
 
 		# self.motion.linear.x = ???

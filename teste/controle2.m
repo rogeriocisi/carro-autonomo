@@ -13,14 +13,50 @@
 % If there is enough front space, then go forward.
 
 
-function [vangular] = controle (distObst, orientacao)
+% Sistema de Inferência
+% OR - max
+% AND - min
+% THEN - min (implicação)
+
 
 % clear all
-%input = [1 0];
-%distObst = input(1)
-%orientacao = input(2)
+input = [1 -0.5];
+distObst = input(1)
+orientacao = input(2)
 
 pkg load fuzzy-logic-toolkit
+  
+
+  
+  
+
+% Regras com 2 antecedentes e 1 consequente
+function [Regra] = fuzzificar2 (dist, orientacao, omg)
+	r1 = min(dist, orientacao);
+	% Implicação da Regra
+	for k=1:size(omg, 2)
+	    Regra(k) = min(r1, omg(k));
+	end
+	clear k;
+endfunction
+
+
+% Regras com 1 antecedente e 1 consequente
+function [Regra] = fuzzificar1 (dist, omg)
+	r1 = dist;
+	% Implicação da Regra
+	for k=1:size(omg, 2)
+	    Regra(k) = min(r1, omg(k));
+	end
+	clear k;
+endfunction
+  
+  
+  
+  
+  
+  
+  
   
 %% Fuzzificação
 % Aqui esta etapa ocorre junto com a declaração das funções de pertinência
@@ -44,14 +80,20 @@ orient2 = trimf(orientacao, [0.7 0.8 0.9]); % pouco_horario
 orient3 = trimf(orientacao, [0.68 0.7 0.72]); % muito_horario
 orient4 = trimf(orientacao, [-0.72 -0.7 -0.68]); % pouco_antihorario
 orient5 = trimf(orientacao, [-0.9 -0.8 -0.7]); % muito_antihorario
+
+orient1 = trimf(orientacao, [-0.9 -0.7 -0.4]); % muito_horario
+orient2 = trimf(orientacao, [-0.5 -0.3 -0.1]); % pouco_horario
+orient3 = trimf(orientacao, [-0.15 0 0.15]); % reto
+orient4 = trimf(orientacao, [0.1 0.3 0.5]); % pouco_antihorario
+orient5 = trimf(orientacao, [0.4 0.7 0.9]); % muito_antihorario
  
 % Saida: Velocidade Angular (-1 a 1)
 omega = -1:0.05:1;
-omg1 = trimf(omega, [-1 -0.6 -0.4]); % muito_dir
+omg1 = trimf(omega, [-0.9 -0.7 -0.4]); % muito_dir
 omg2 = trimf(omega, [-0.5 -0.3 -0.1]); % pouco_dir
 omg3 = trimf(omega, [-0.15 0 0.15]); % zero
 omg4 = trimf(omega, [0.1 0.3 0.5]); % pouco_esq
-omg5 = trimf(omega, [0.4 0.6 1]); % muito_esq
+omg5 = trimf(omega, [0.4 0.7 0.9]); % muito_esq
  
 % ========Aplicando as Regras========
 % Distancia & orientacao -> Velocidade angular
@@ -103,59 +145,5 @@ output = max(output,R11);
 % Aqui usamos o método da Centróide, mas existem outros.
  
 vangular = defuzz(omega, output, 'centroid')
-  
-endfunction
 
 
-% Sistema de Inferência
-% OR - max
-% AND - min
-% THEN - min (implicação)
-
-% Regras com 2 antecedentes e 1 consequente
-function [Regra] = fuzzificar2 (dist, orientacao, omg)
-	r1 = min(dist, orientacao);
-	% Implicação da Regra
-	for k=1:size(omg, 2)
-	    Regra(k) = min(r1, omg(k));
-	end
-	clear k;
-endfunction
-
-
-% Regras com 1 antecedente e 1 consequente
-function [Regra] = fuzzificar1 (dist, omg)
-	r1 = dist;
-	% Implicação da Regra
-	for k=1:size(omg, 2)
-	    Regra(k) = min(r1, omg(k));
-	end
-	clear k;
-endfunction
-
-
-% ====EOF====
-
-
-
-%{
-
-2. Forward approaching the curb
-2.1 Far -> R2
-2.1.1 if(distObst == far & orientacao < R2) -> steering_fw_approaching = L2;
-2.1.2 if(distObst == far & orientacao > R2) -> steering_fw_approaching = R2;
-2.1.3 if(distObst == far & orientacao == R2) -> steering_fw_approaching = straight;
-2.2 Close -> R1
-2.2.1 if(distObst == far & orientacao < R1) -> steering_fw_approaching = L1;
-2.2.2 if(distObst == far & orientacao > R1) -> steering_fw_approaching = R1;
-2.2.3 if(distObst == far & orientacao == R1) -> steering_fw_approaching = straight;
-2.3 Touching -> Straight
-2.3.1 if(distObst == touching) -> steering_fw_approaching = straight;
-
-3. Forward moving away from the rear obstacle
-3.1 Far -> Straight
-3.1.1 if(distObst == far & orientacao > straight) -> steering_fw_mov_away = L3;
-3.1.2 if(distObst == far & orientacao < straight) -> steering_fw_mov_away = R3;
-3.1.3 if(distObst == far & orientacao == straight) -> steering_fw_mov_away = straight;
-
-%}

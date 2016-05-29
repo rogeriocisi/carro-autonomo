@@ -21,6 +21,20 @@ function [vangular] = controle (distObst, orientacao)
 %orientacao = input(2)
 
 pkg load fuzzy-logic-toolkit
+
+if (orientacao < -0.8999)
+  orientacao = -0.8999
+endif
+if (orientacao > 0.8999)
+  orientacao = 0.8999
+endif
+
+if (distObst < 0.0001)
+  distObst = 0.0001
+endif
+if (distObst > 9.99)
+  distObst = 9.99
+endif
   
 %% Fuzzificação
 % Aqui esta etapa ocorre junto com a declaração das funções de pertinência
@@ -39,19 +53,19 @@ dist3 = trapmf(distObst, [0 0.1 0.3 0.5]); % Touching
  
 % orientacao
 % Mesma explicação da de cima, mas para uma função de pertinência que representa o Conjunto Fuzzy orientacao (-pi/2 a pi/2).
-orient1 = trimf(orientacao, [1.1 1 0.8]); % reto
-orient2 = trimf(orientacao, [0.9 0.8 0.7]); % pouco_horario
-orient3 = trimf(orientacao, [0.68 0.7 0.72]); % muito_horario
-orient4 = trimf(orientacao, [-0.72 -0.7 -0.68]); % pouco_antihorario
-orient5 = trimf(orientacao, [-0.7 -0.8 -0.9]); % muito_antihorario
+orient1 = trimf(orientacao, [-0.9 -0.7 -0.4]); % muito_horario
+orient2 = trimf(orientacao, [-0.5 -0.3 -0.1]); % pouco_horario
+orient3 = trimf(orientacao, [-0.15 0 0.15]); % reto
+orient4 = trimf(orientacao, [0.1 0.3 0.5]); % pouco_antihorario
+orient5 = trimf(orientacao, [0.4 0.7 0.9]); % muito_antihorario
  
 % Saida: Velocidade Angular (-1 a 1)
 omega = -1:0.05:1;
-omg1 = trimf(omega, [-0.8 -0.6 -0.4]); % muito_esq
-omg2 = trimf(omega, [-0.5 -0.3 -0.1]); % pouco_esq
+omg1 = trimf(omega, [-1.2 -0.8 -0.4]); % muito_dir
+omg2 = trimf(omega, [-0.5 -0.3 -0.1]); % pouco_dir
 omg3 = trimf(omega, [-0.15 0 0.15]); % zero
-omg4 = trimf(omega, [0.1 0.3 0.5]); % pouco_dir
-omg5 = trimf(omega, [0.4 0.6 0.8]); % muito_dir
+omg4 = trimf(omega, [0.1 0.3 0.5]); % pouco_esq
+omg5 = trimf(omega, [0.4 0.8 1.2]); % muito_esq
  
 % ========Aplicando as Regras========
 % Distancia & orientacao -> Velocidade angular
@@ -70,19 +84,19 @@ omg5 = trimf(omega, [0.4 0.6 0.8]); % muito_dir
 
 % R11: if(distObst is touching) -> omega = zero;
 
-R1 = fuzzificar2 (dist1, orient1, omg2);
-R2 = fuzzificar2 (dist1, orient2, omg1);
-R3 = fuzzificar2 (dist1, orient3, omg1);
-R4 = fuzzificar2 (dist1, orient4, omg3);
-R5 = fuzzificar2 (dist1, orient5, omg3);
+R1 = fuzzyficar2 (dist1, orient1, omg4);
+R2 = fuzzyficar2 (dist1, orient2, omg5);
+R3 = fuzzyficar2 (dist1, orient3, omg5);
+R4 = fuzzyficar2 (dist1, orient4, omg3);
+R5 = fuzzyficar2 (dist1, orient5, omg3);
 
-R6 = fuzzificar2 (dist2, orient3, omg2);
-R7 = fuzzificar2 (dist2, orient2, omg2);
-R8 = fuzzificar2 (dist2, orient1, omg4);
-R9 = fuzzificar2 (dist2, orient4, omg4);
-R10 = fuzzificar2 (dist2, orient5, omg5);
+R6 = fuzzyficar2 (dist2, orient3, omg4);
+R7 = fuzzyficar2 (dist2, orient2, omg4);
+R8 = fuzzyficar2 (dist2, orient1, omg2);
+R9 = fuzzyficar2 (dist2, orient4, omg2);
+R10 = fuzzyficar2 (dist2, orient5, omg1);
 
-R11 = fuzzificar1 (dist3, omg3);
+R11 = fuzzyficar1 (dist3, omg3);
  
 % Agregação das regras
 % Aqui as 13 regras são agregadas para formar um Conjunto Fuzzy de Saída do Sistema de Inferência.
@@ -104,33 +118,6 @@ output = max(output,R11);
  
 vangular = defuzz(omega, output, 'centroid')
   
-endfunction
-
-
-% Sistema de Inferência
-% OR - max
-% AND - min
-% THEN - min (implicação)
-
-% Regras com 2 antecedentes e 1 consequente
-function [Regra] = fuzzificar2 (dist, orientacao, omg)
-	r1 = min(dist, orientacao);
-	% Implicação da Regra
-	for k=1:size(omg, 2)
-	    Regra(k) = min(r1, omg(k));
-	end
-	clear k;
-endfunction
-
-
-% Regras com 1 antecedente e 1 consequente
-function [Regra] = fuzzificar1 (dist, omg)
-	r1 = dist;
-	% Implicação da Regra
-	for k=1:size(omg, 2)
-	    Regra(k) = min(r1, omg(k));
-	end
-	clear k;
 endfunction
 
 
