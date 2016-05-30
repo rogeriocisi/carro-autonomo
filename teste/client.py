@@ -33,14 +33,14 @@ class Controle:
 		self.distLidar = 0
 		self.direcao = 1
 
-
+	'''
 	def convert_trans_rot_vel_to_steering_angle(v, omega, wheelbase):
 		if omega == 0 or v == 0:
 			return 0
 
 		radius = v / omega
 		return math.atan(wheelbase / radius)
-
+	'''
 
 	def mover(self):
 		# Obtem as distancias minimas dos 4 sensores da frente, traz, esquerda e direita
@@ -67,11 +67,17 @@ class Controle:
 				self.estado = 3
 				self.motion.linear.x = self.motion.linear.x * -0.5
 
+		# Park assist via fuzzy
 		if self.estado == 3:
-			# Park assist via fuzzy
-			self.motion.angular.z = octave.controle(distCalcada, self.oriZ)
+			# se estiver proximo a obstaculo, inverte o sentido
 			if distObst < 0.4:
 				self.motion.linear.x = self.motion.linear.x * -1
+
+			sentido = 1 # indica sentido eh para frente
+			if self.motion.linear.x < 0:
+				sentido = -1 # indica sentido eh para tras
+			self.motion.angular.z = octave.controle(sentido, distCalcada, self.oriZ)
+
 			if distCalcada < 0.4 and abs(self.oriZ) < 0.05:
 				self.estado = 4
 
