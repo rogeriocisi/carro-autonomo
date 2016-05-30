@@ -26,6 +26,7 @@ class Controle:
 		self.estadoCont = 0
 		self.espacoVazio = 0
 		self.posX = 0
+		self.posY = 0
 		self.oriZ = 0
 		self.iniX = 0
 		self.distX = 0
@@ -48,43 +49,37 @@ class Controle:
 		obstEs = min(self.obstEs)
 		obstDi = min(self.obstDi)
 
-		distObst = obstEs
-		if self.direcao == -1:
-			distObst = obstDir
+		distCalcada = 13.6 - self.posY
 
+		distObst = obstTr
 		if self.motion.linear.x > 0:
-			distObst = min(distObst, obstFr)
-		else:
-			distObst = min(distObst, obstTr)
+			distObst = obstFr
 
-		'''
 		if self.estado == 0:
 			self.estado = 1
-			self.motion.linear.x = 1
-			self.motion.angular.z = 0
-
-		if self.estado == 1:
-			self.estado = 2
 			# Se estiver no sentido negativo do eixo X, inverte a variavel de direcao
 			if abs(self.oriZ) > 0.9:
 				self.direcao = -1
+			self.motion.linear.x = 1 * self.direcao
 
-		if self.estado == 2:
+		if self.estado == 1:
 			if self.espacoVazio > 2.2:
 				self.estado = 3
+				self.motion.linear.x = self.motion.linear.x * -0.5
 
 		if self.estado == 3:
 			# Park assist via fuzzy
-			angular = octave.controle(distObst, self.oriZ)
-			self.motion.linear.x = linear
-			self.motion.angular.z = angular
-		'''
+			self.motion.angular.z = octave.controle(distCalcada, self.oriZ)
+			if distObst < 0.4:
+				self.motion.linear.x = self.motion.linear.x * -1
+			if distCalcada < 0.4 and abs(self.oriZ) < 0.05:
+				self.estado = 4
 
-		# angular = octave.controle(distObst, self.oriZ)
-		angular = 0
-		self.motion.angular.z = -1
+		if self.estado == 4:
+			self.motion.linear.x = 0
+			self.motion.angular.z = 0
 
-		rospy.loginfo("lin: %.1f ang: %.1f dis: %.1f ori: %.1f" %(self.motion.linear.x, angular, distObst, self.oriZ))
+		rospy.loginfo("lin: %.1f ang: %.1f dis: %.2f ori: %.1f" %(self.motion.linear.x, self.motion.angular.z, distCalcada, self.oriZ))
 
 		# rospy.loginfo("lin: %.1f ang: %.1f dis: %.1f ori: %.1f" %(self.motion.linear.x, self.motion.angular.z, distObst, self.oriZ))
 		# rospy.loginfo("%d fr: %.1f tr: %.1f es: %.1f di: %.1f oriZ: %.3f" %(self.estado, obstFr, obstTr, obstEs, obstDi, self.oriZ))
@@ -114,6 +109,7 @@ class Controle:
 		position = poseStamped.pose.position
 		orientation = poseStamped.pose.orientation
 		self.posX = position.x
+		self.posY = position.y
 		self.oriZ = orientation.z
 
 		self.mover()
