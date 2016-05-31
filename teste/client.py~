@@ -69,12 +69,15 @@ class Controle:
 
 		# Park assist via fuzzy
 		if self.estado == 3:
+			# se estiver proximo a obstaculo, inverte o sentido
+			if distObst < 0.4:
+				self.motion.linear.x = self.motion.linear.x * -1
+
 			sentido = 1 # indica sentido eh para frente
 			if self.motion.linear.x < 0:
 				sentido = -1 # indica sentido eh para tras
 			self.motion.angular.z = octave.controle(sentido, distCalcada, self.oriZ)
-			if distObst < 0.4:
-				self.motion.linear.x = self.motion.linear.x * -1
+
 			if distCalcada < 0.4 and abs(self.oriZ) < 0.05:
 				self.estado = 4
 

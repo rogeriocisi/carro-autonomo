@@ -78,6 +78,7 @@ class Controle:
 				sentido = -1 # indica sentido eh para tras
 			self.motion.angular.z = octave.controle(sentido, distCalcada, self.oriZ)
 
+			# se estiver proximo e alinhado a calcada, para o carro
 			if distCalcada < 0.4 and abs(self.oriZ) < 0.05:
 				self.estado = 4
 
