@@ -82,14 +82,14 @@ omgMuitoAntiHor = trimf(omega, [0.4 0.8 MAX_OMEGA]); % muito_antihorario
 if (sentido == -1)
 	R1 = fuzzyficar2 (distFar, orientMuitoEsq, omgMuitoHorario);
 	R2 = fuzzyficar2 (distFar, orientPoucoEsq, omgMuitoHorario);
-	R3 = fuzzyficar2 (distFar, orientReto, omgMuitoHorario);
+	R3 = fuzzyficar2 (distFar, orientReto, omgPoucoHorario);
 	R4 = fuzzyficar2 (distFar, orientPoucoDir, omgPoucoHorario);
 	R5 = fuzzyficar2 (distFar, orientMuitoDir, omgZero);
 
-	R6 = fuzzyficar2 (distClose, orientMuitoEsq, omgMuitoHorario);
-	R7 = fuzzyficar2 (distClose, orientPoucoEsq, omgMuitoHorario);
-	R8 = fuzzyficar2 (distClose, orientReto, omgPoucoHorario);
-	R9 = fuzzyficar2 (distClose, orientPoucoDir, omgZero);
+	R6 = fuzzyficar2 (distClose, orientMuitoEsq, omgPoucoHorario);
+	R7 = fuzzyficar2 (distClose, orientPoucoEsq, omgPoucoHorario);
+	R8 = fuzzyficar2 (distClose, orientReto, omgPoucoAntiHor);
+	R9 = fuzzyficar2 (distClose, orientPoucoDir, omgPoucoAntiHor);
 	R10 = fuzzyficar2 (distClose, orientMuitoDir, omgPoucoAntiHor);
 endif
 % Sentido para frente
@@ -100,11 +100,11 @@ if (sentido == 1)
 	R4 = fuzzyficar2 (distFar, orientPoucoDir, omgPoucoAntiHor);
 	R5 = fuzzyficar2 (distFar, orientMuitoDir, omgMuitoAntiHor);
 
-	R6 = fuzzyficar2 (distClose, orientMuitoEsq, omgMuitoHorario);
+	R6 = fuzzyficar2 (distClose, orientMuitoEsq, omgPoucoHorario);
 	R7 = fuzzyficar2 (distClose, orientPoucoEsq, omgPoucoHorario);
 	R8 = fuzzyficar2 (distClose, orientReto, omgZero);
 	R9 = fuzzyficar2 (distClose, orientPoucoDir, omgPoucoAntiHor);
-	R10 = fuzzyficar2 (distClose, orientMuitoDir, omgMuitoAntiHor);
+	R10 = fuzzyficar2 (distClose, orientMuitoDir, omgPoucoAntiHor);
 endif
 
 R11 = fuzzyficar1 (distTouch, omgZero);

@@ -65,12 +65,12 @@ class Controle:
 		if self.estado == 1:
 			if self.espacoVazio > 2.2:
 				self.estado = 3
-				self.motion.linear.x = self.motion.linear.x * -0.5
+				self.motion.linear.x = self.motion.linear.x * -0.3
 
 		# Park assist via fuzzy
 		if self.estado == 3:
 			# se estiver proximo a obstaculo, inverte o sentido
-			if distObst < 0.4:
+			if distObst < 0.4 or distCalcada < 0.3:
 				self.motion.linear.x = self.motion.linear.x * -1
 
 			sentido = 1 # indica sentido eh para frente
