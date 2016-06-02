@@ -8,7 +8,7 @@ from geometry_msgs.msg import PoseStamped
 from geometry_msgs.msg import Twist
 from sensor_msgs.msg import LaserScan
 from sensor_msgs.msg import Range
-from oct2py import octave
+#from ackermann_msgs.msg import AckermannDriveStamped
 
 
 class Controle:
@@ -16,6 +16,9 @@ class Controle:
 	def __init__(self):
 		self.cmd1 = rospy.Publisher("/atrv/motion", Twist, queue_size=10)
 		self.motion = Twist()
+
+		#self.cmd2 = rospy.Publisher('ackermann_cmd', AckermannDriveStamped)
+		#self.ack = AckermannDriveStamped()
 
 		MAX_IR = 3
 		self.obstEs = [MAX_IR, MAX_IR, MAX_IR]
@@ -26,7 +29,6 @@ class Controle:
 		self.estadoCont = 0
 		self.espacoVazio = 0
 		self.posX = 0
-		self.posY = 0
 		self.oriZ = 0
 		self.iniX = 0
 		self.distX = 0
@@ -34,54 +36,58 @@ class Controle:
 		self.direcao = 1
 
 
+	def convert_trans_rot_vel_to_steering_angle(v, omega, wheelbase):
+		if omega == 0 or v == 0:
+			return 0
+
+		radius = v / omega
+		return math.atan(wheelbase / radius)
+
+
 	def mover(self):
 		# Obtem as distancias minimas dos 4 sensores da frente, traz, esquerda e direita
-		obstFr = min(self.obstFr)
-		obstTr = min(self.obstTr)
-		obstEs = min(self.obstEs)
-		obstDi = min(self.obstDi)
+		obstFrMin = min(self.obstFr)
+		obstTrMin = min(self.obstTr)
+		obstEsMin = min(self.obstEs)
+		obstDiMin = min(self.obstDi)
 
-		distCalcada = 13.6 - self.posY
+		rospy.loginfo("%d fr: %.1f tr: %.1f es: %.1f di: %.1f oriZ: %.3f" %(self.estado, obstFrMin, obstTrMin, obstEsMin, obstDiMin, self.oriZ))
 
-		distObst = obstTr
-		if self.motion.linear.x > 0:
-			distObst = obstFr
-
+		# Algoritmo do park assist
 		if self.estado == 0:
 			self.estado = 1
+			self.motion.linear.x = 1
+			self.motion.angular.z = 0
+		if self.estado == 1:
 			# Se estiver no sentido negativo do eixo X, inverte a variavel de direcao
 			if abs(self.oriZ) > 0.9:
 				self.direcao = -1
-			self.motion.linear.x = 1 * self.direcao
 
-		if self.estado == 1:
 			if self.espacoVazio > 2.2:
+				self.estado = 2
+				self.motion.linear.x = -0.3
+				self.motion.angular.z = -0.2 * self.direcao
+		if self.estado == 2:
+			if obstTrMin < 0.6:
 				self.estado = 3
-				self.motion.linear.x = self.motion.linear.x * -0.25
-
-		# Park assist via fuzzy
+				self.motion.linear.x = -0.3
+				self.motion.angular.z = 0.3 * self.direcao
 		if self.estado == 3:
-			# se estiver proximo a obstaculo, inverte o sentido
-			if distObst < 0.31 or distCalcada < 0.31:
-				self.motion.linear.x = self.motion.linear.x * -1
-
-			sentido = 1 # indica sentido eh para frente
-			if self.motion.linear.x < 0:
-				sentido = -1 # indica sentido eh para tras
-			
-			self.motion.angular.z = octave.controle(sentido, distCalcada, self.oriZ)
-
-			# se estiver proximo e alinhado a calcada, para o carro
-			if distCalcada < 0.4 and abs(self.oriZ) < 0.035:
+			if obstTrMin < 0.3:
 				self.estado = 4
-
+				self.motion.linear.x = 0.15
+				self.motion.angular.z = 0.3 * self.direcao
 		if self.estado == 4:
-			self.motion.linear.x = 0
-			self.motion.angular.z = 0
-
-		rospy.loginfo("lin: %.1f ang: %.2f dis: %.2f ori: %.1f" %(self.motion.linear.x, self.motion.angular.z, distCalcada, self.oriZ))
+			if (abs(self.oriZ) < 0.02 or abs(self.oriZ) > 0.9999) and ((self.direcao == 1 and obstEsMin < 0.6) or (self.direcao == -1 and obstDiMin < 0.6)):
+				self.estado = 6
+				self.motion.linear.x = 0
+				self.motion.angular.z = 0
 
 		self.cmd1.publish(self.motion)
+
+		#ack.drive.speed = 1.0
+		#ack.drive.acceleration = 2.0
+		#self.cmd2.publish(self.ack)
 
 
 	def calculaEspacoParkAssist(self, distObst):
@@ -103,7 +109,6 @@ class Controle:
 		position = poseStamped.pose.position
 		orientation = poseStamped.pose.orientation
 		self.posX = position.x
-		self.posY = position.y
 		self.oriZ = orientation.z
 
 		self.mover()
@@ -216,6 +221,8 @@ def callbackSick(laserScan):
 def listener():
 	# Initializes node, creates subscriber, and states callback functions
 	rospy.init_node('navigation_sensors')
+	# rospy.init_node('ackermann_pub')
+
 	rospy.loginfo("Subscriber Starting")
 
 	pos = rospy.Subscriber("/atrv/pose", PoseStamped, callbackPose)

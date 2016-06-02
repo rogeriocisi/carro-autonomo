@@ -7,7 +7,7 @@ atrv3 = ATRV()
 atrv4 = ATRV()
 atrv5 = ATRV()
 
-atrv.translate(x = 6, y = 12.2)
+atrv.translate(x = 0, y = 12.2)
 atrv.rotate(0, 0, 0)
 #atrv.translate(x = 8, y = 12.2)
 #atrv.rotate(0, 0, 3.14)
