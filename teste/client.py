@@ -57,7 +57,7 @@ class Controle:
 		if self.estado == 1:
 			if self.espacoVazio > 2.2:
 				self.estado = 3
-				self.motion.linear.x = self.motion.linear.x * -0.25
+				self.motion.linear.x = self.motion.linear.x * -0.3
 
 		# Park assist via fuzzy
 		if self.estado == 3:
