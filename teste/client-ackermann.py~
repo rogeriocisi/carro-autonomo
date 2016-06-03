@@ -112,7 +112,11 @@ class Controle:
 		self.mover()
 
 
-	def callbackAckermann(self, ackermannStamped):
+	def callbackPose(self, poseStamped):
+		position = poseStamped.pose.position
+		orientation = poseStamped.pose.orientation
+		self.posX = position.x
+		self.oriZ = orientation.z
 
 		self.mover()
 
