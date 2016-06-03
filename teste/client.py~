@@ -72,7 +72,11 @@ class Controle:
 			self.motion.angular.z = octave.controle(sentido, distCalcada, self.oriZ)
 
 			# se estiver proximo e alinhado a calcada, para o carro
+<<<<<<< HEAD
 			if distCalcada < 0.4 and abs(self.oriZ) <= 0.03:
+=======
+			if distCalcada < 0.4 and abs(self.oriZ) < 0.04:
+>>>>>>> 619e3d119ce29dd2399f4404dc896f55dc0bb798
 				self.estado = 4
 
 		if self.estado == 4:
