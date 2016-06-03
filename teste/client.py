@@ -56,13 +56,8 @@ class Controle:
 
 		if self.estado == 1:
 			if self.espacoVazio > 2.2:
-<<<<<<< HEAD
 				self.estado = 2
 				self.motion.linear.x = self.motion.linear.x * -0.25
-=======
-				self.estado = 3
-				self.motion.linear.x = self.motion.linear.x * -0.3
->>>>>>> 619e3d119ce29dd2399f4404dc896f55dc0bb798
 
 		if self.estado == 2:
 			# se estiver proximo a obstaculo, inverte o sentido
