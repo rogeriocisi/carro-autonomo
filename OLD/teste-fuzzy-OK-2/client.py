@@ -49,18 +49,17 @@ class Controle:
 
 		if self.estado == 0:
 			self.estado = 1
-			# Se estiver no sentido negativo do eixo X, inverte a variavel de direcao
+			# se estiver no sentido negativo do eixo X, inverte a variavel de direcao
 			if abs(self.oriZ) > 0.9:
 				self.direcao = -1
 			self.motion.linear.x = 1 * self.direcao
 
 		if self.estado == 1:
 			if self.espacoVazio > 2.2:
-				self.estado = 3
-				self.motion.linear.x = self.motion.linear.x * -0.3
+				self.estado = 2
+				self.motion.linear.x = self.motion.linear.x * -0.25
 
-		# Park assist via fuzzy
-		if self.estado == 3:
+		if self.estado == 2:
 			# se estiver proximo a obstaculo, inverte o sentido
 			if distObst < 0.31 or distCalcada < 0.31:
 				self.motion.linear.x = self.motion.linear.x * -1
@@ -69,13 +68,14 @@ class Controle:
 			if self.motion.linear.x < 0:
 				sentido = -1 # indica sentido eh para tras
 			
+			# park assist via fuzzy
 			self.motion.angular.z = octave.controle(sentido, distCalcada, self.oriZ)
 
 			# se estiver proximo e alinhado a calcada, para o carro
-			if distCalcada < 0.4 and abs(self.oriZ) < 0.04:
-				self.estado = 4
+			if distCalcada < 0.4 and abs(self.oriZ) <= 0.02:
+				self.estado = 3
 
-		if self.estado == 4:
+		if self.estado == 3:
 			self.motion.linear.x = 0
 			self.motion.angular.z = 0
 
