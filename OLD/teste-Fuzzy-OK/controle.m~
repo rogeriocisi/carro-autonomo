@@ -55,8 +55,8 @@ endif
 % Ao entrar com a variável na função gaussmf() eu já tenho a fuzzificação, ou seja, o grau de pertinência deste valor ao Conjunto Fuzzy "distancia do obstaculo".
 % Se eu tivesse dado o intervalo de x, neste caso de 0 a 1000 às funcoes trapmf, eu teria uma curva representando a FP do Conjunto Fuzzy distCalcada.
 distTouch = trapmf(distCalcada, [MIN_DIST 0.1 0.3 0.45]); % Touching
-distClose = trapmf(distCalcada, [0.3 0.4 0.9 1.0]); % Close
-distFar = trapmf(distCalcada, [0.9 1.0 9.9 MAX_DIST]); % Far
+distClose = trapmf(distCalcada, [0.3 0.4 0.95 1.05]); % Close
+distFar = trapmf(distCalcada, [0.95 1.05 9.9 MAX_DIST]); % Far
  
 % orientacao
 % Mesma explicação da de cima, mas para uma função de pertinência que representa o Conjunto Fuzzy orientacao (-pi/2 a pi/2).
