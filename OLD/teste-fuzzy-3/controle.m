@@ -25,8 +25,8 @@ MIN_DIST = 0;
 MAX_DIST = 10;
 MIN_ORIENT = -0.9;
 MAX_ORIENT = 0.9;
-MIN_OMEGA = -0.4;
-MAX_OMEGA = 0.4;
+MIN_OMEGA = -0.8;
+MAX_OMEGA = 0.8;
 
 if (distCalcada <= MIN_DIST*0.999)
   distCalcada = MIN_DIST + 0.001;
@@ -54,9 +54,9 @@ endif
 % distCalcada
 % Ao entrar com a variável na função gaussmf() eu já tenho a fuzzificação, ou seja, o grau de pertinência deste valor ao Conjunto Fuzzy "distancia do obstaculo".
 % Se eu tivesse dado o intervalo de x, neste caso de 0 a 1000 às funcoes trapmf, eu teria uma curva representando a FP do Conjunto Fuzzy distCalcada.
-distTouch = trapmf(distCalcada, [MIN_DIST 0.1 0.3 0.45]); % Touching
-distClose = trapmf(distCalcada, [0.3 0.4 1.1 1.2]); % Close
-distFar = trapmf(distCalcada, [1.1 1.2 9.9 MAX_DIST]); % Far
+distTouch = trapmf(distCalcada, [MIN_DIST 0.1 0.3 0.35]); % Touching
+distClose = trapmf(distCalcada, [0.3 0.4 1.0 1.1]); % Close
+distFar = trapmf(distCalcada, [1.0 1.1 9.9 MAX_DIST]); % Far
  
 % orientacao
 % Mesma explicação da de cima, mas para uma função de pertinência que representa o Conjunto Fuzzy orientacao (-pi/2 a pi/2).
@@ -68,11 +68,11 @@ orientMuitoCima = trapmf(orientacao, [0.5 0.6 0.8 MAX_ORIENT]); % muito para cim
  
 % Saida: Velocidade Angular (-1 a 1)
 omega = MIN_OMEGA:0.1:MAX_OMEGA;
-omgMuitoHorario = trimf(omega, [MIN_OMEGA -0.3 -0.2]); % muito_horario
-omgPoucoHorario = trimf(omega, [-0.3 -0.2 0]); % pouco_horario
+omgMuitoHorario = trimf(omega, [MIN_OMEGA -0.5 -0.2]); % muito_horario
+omgPoucoHorario = trimf(omega, [-0.4 -0.2 0]); % pouco_horario
 omgZero = trimf(omega, [-0.1 0 0.1]); % zero
-omgPoucoAntiHor = trimf(omega, [0 0.2 0.3]); % pouco_antihorario
-omgMuitoAntiHor = trimf(omega, [0.2 0.3 MAX_OMEGA]); % muito_antihorario
+omgPoucoAntiHor = trimf(omega, [0 0.2 0.4]); % pouco_antihorario
+omgMuitoAntiHor = trimf(omega, [0.2 0.5 MAX_OMEGA]); % muito_antihorario
  
 % ========Aplicando as Regras========
 % Distancia & orientacao -> Velocidade angular
@@ -90,7 +90,7 @@ if (sentido == -1)
 	R7 = fuzzyficar2 (distClose, orientPoucoCima, omgPoucoHorario);
 	R8 = fuzzyficar2 (distClose, orientReto, omgPoucoHorario);
 	R9 = fuzzyficar2 (distClose, orientPoucoBaixo, omgPoucoAntiHor);
-	R10 = fuzzyficar2 (distClose, orientMuitoBaixo, omgMuitoAntiHor);
+	R10 = fuzzyficar2 (distClose, orientMuitoBaixo, omgPoucoAntiHor);
 endif
 % Sentido para frente
 if (sentido == 1)
@@ -104,17 +104,13 @@ if (sentido == 1)
 	R7 = fuzzyficar2 (distClose, orientPoucoCima, omgZero);
 	R8 = fuzzyficar2 (distClose, orientReto, omgPoucoAntiHor);
 	R9 = fuzzyficar2 (distClose, orientPoucoBaixo, omgPoucoAntiHor);
-	R10 = fuzzyficar2 (distClose, orientMuitoBaixo, omgPoucoAntiHor);
+	R10 = fuzzyficar2 (distClose, orientMuitoBaixo, omgMuitoAntiHor);
 endif
 
-R11 = fuzzyficar2 (distTouch, orientMuitoCima, omgMuitoHorario);
-R12 = fuzzyficar2 (distTouch, orientPoucoCima, omgPoucoHorario);
-R12 = fuzzyficar2 (distTouch, orientReto, omgZero);
-R13 = fuzzyficar2 (distTouch, orientPoucoBaixo, omgPoucoAntiHor);
-R14 = fuzzyficar2 (distTouch, orientMuitoBaixo, omgMuitoAntiHor);
+R11 = fuzzyficar1 (distTouch, omgZero);
  
 % Agregação das regras
-% Aqui as regras são agregadas para formar um Conjunto Fuzzy de Saída do Sistema de Inferência.
+% Aqui as 13 regras são agregadas para formar um Conjunto Fuzzy de Saída do Sistema de Inferência.
 % Neste caso usamos o operador MAX
 output = max(R1,R2);
 output = max(output,R3);
@@ -126,8 +122,6 @@ output = max(output,R8);
 output = max(output,R9);
 output = max(output,R10);
 output = max(output,R11);
-output = max(output,R12);
-output = max(output,R13);
  
 %% =======Defuzzificacao========
 % Nesta etapa através de um método obtem-se um resultado escalar do conjunto fuzzy resultante do sistema de inferência.

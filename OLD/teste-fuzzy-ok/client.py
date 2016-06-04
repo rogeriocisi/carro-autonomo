@@ -79,7 +79,7 @@ class Controle:
 			self.motion.linear.x = 0
 			self.motion.angular.z = 0
 
-		rospy.loginfo("lin: %.1f ang: %.2f dis: %.2f ori: %.2f" %(self.motion.linear.x, self.motion.angular.z, distCalcada, self.oriZ))
+		rospy.loginfo("lin: %.1f ang: %.2f dis: %.2f ori: %.1f" %(self.motion.linear.x, self.motion.angular.z, distCalcada, self.oriZ))
 
 		self.cmd1.publish(self.motion)
 

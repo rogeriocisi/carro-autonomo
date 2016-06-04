@@ -107,11 +107,9 @@ if (sentido == 1)
 	R10 = fuzzyficar2 (distClose, orientMuitoBaixo, omgPoucoAntiHor);
 endif
 
-R11 = fuzzyficar2 (distTouch, orientMuitoCima, omgMuitoHorario);
-R12 = fuzzyficar2 (distTouch, orientPoucoCima, omgPoucoHorario);
+R11 = fuzzyficar2 (distTouch, orientPoucoCima, omgPoucoHorario);
 R12 = fuzzyficar2 (distTouch, orientReto, omgZero);
 R13 = fuzzyficar2 (distTouch, orientPoucoBaixo, omgPoucoAntiHor);
-R14 = fuzzyficar2 (distTouch, orientMuitoBaixo, omgMuitoAntiHor);
  
 % Agregação das regras
 % Aqui as regras são agregadas para formar um Conjunto Fuzzy de Saída do Sistema de Inferência.
