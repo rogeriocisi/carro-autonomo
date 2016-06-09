@@ -55,6 +55,7 @@ class Controle:
 			self.motion.linear.x = 1 * self.direcao
 
 		if self.estado == 1:
+			# se o espacao for suficiente para estacionar, inicia o algoritmo de park assist
 			if self.espacoVazio > 2.2:
 				self.estado = 2
 				self.motion.linear.x = self.motion.linear.x * -0.25
@@ -64,9 +65,9 @@ class Controle:
 			if distObst < 0.31 or distCalcada < 0.31:
 				self.motion.linear.x = self.motion.linear.x * -1
 
-			sentido = 1 # indica sentido eh para frente
+			sentido = 1 # indica sentido para frente
 			if self.motion.linear.x < 0:
-				sentido = -1 # indica sentido eh para tras
+				sentido = -1 # indica sentido para tras
 			
 			# park assist via fuzzy
 			self.motion.angular.z = octave.controle(sentido, distCalcada, self.oriZ)
