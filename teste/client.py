@@ -5,17 +5,24 @@ import math
 import sensor_msgs.point_cloud2 as pc2
 import numpy as np
 from geometry_msgs.msg import PoseStamped
-from geometry_msgs.msg import Twist
 from sensor_msgs.msg import LaserScan
 from sensor_msgs.msg import Range
 from oct2py import octave
+
+#
+#
+# Utilizar pymorse para conectar com o builder via socket
+#
+# ver https://github.com/morse-simulator/morse/blob/master/examples/clients/quadrotor/Cat_waypoints_pymorse_socket_script.py
+#
+# from pymorse import Morse
 
 
 class Controle:
 
 	def __init__(self):
-		self.cmd1 = rospy.Publisher("/atrv/motion", Twist, queue_size=10)
-		self.motion = Twist()
+		self.cmd1 = rospy.Publisher("/hummer/steerforce", Twist, queue_size=10)
+		self.steerforce = Twist()
 
 		MAX_IR = 3
 		self.obstEs = [MAX_IR, MAX_IR, MAX_IR]
@@ -218,20 +225,20 @@ def listener():
 	rospy.init_node('navigation_sensors')
 	rospy.loginfo("Subscriber Starting")
 
-	pos = rospy.Subscriber("/atrv/pose", PoseStamped, callbackPose)
-	ie1 = rospy.Subscriber("/atrv/infraredEs1", LaserScan, callbackIREs1)
-	ie2 = rospy.Subscriber("/atrv/infraredEs2", LaserScan, callbackIREs2)
-	ie3 = rospy.Subscriber("/atrv/infraredEs3", LaserScan, callbackIREs3)
-	if1 = rospy.Subscriber("/atrv/infraredFr1", LaserScan, callbackIRFr1)
-	if2 = rospy.Subscriber("/atrv/infraredFr2", LaserScan, callbackIRFr2)
-	if3 = rospy.Subscriber("/atrv/infraredFr3", LaserScan, callbackIRFr3)
-	it1 = rospy.Subscriber("/atrv/infraredTr1", LaserScan, callbackIRTr1)
-	it2 = rospy.Subscriber("/atrv/infraredTr2", LaserScan, callbackIRTr2)
-	it3 = rospy.Subscriber("/atrv/infraredTr3", LaserScan, callbackIRTr3)
-	di1 = rospy.Subscriber("/atrv/infraredDi1", LaserScan, callbackIRDi1)
-	di2 = rospy.Subscriber("/atrv/infraredDi2", LaserScan, callbackIRDi2)
-	di3 = rospy.Subscriber("/atrv/infraredDi3", LaserScan, callbackIRDi3)
-	sic = rospy.Subscriber("/atrv/sick", LaserScan, callbackSick)
+	pos = rospy.Subscriber("/hummer/pose", PoseStamped, callbackPose)
+	ie1 = rospy.Subscriber("/hummer/infraredEs1", LaserScan, callbackIREs1)
+	ie2 = rospy.Subscriber("/hummer/infraredEs2", LaserScan, callbackIREs2)
+	ie3 = rospy.Subscriber("/hummer/infraredEs3", LaserScan, callbackIREs3)
+	if1 = rospy.Subscriber("/hummer/infraredFr1", LaserScan, callbackIRFr1)
+	if2 = rospy.Subscriber("/hummer/infraredFr2", LaserScan, callbackIRFr2)
+	if3 = rospy.Subscriber("/hummer/infraredFr3", LaserScan, callbackIRFr3)
+	it1 = rospy.Subscriber("/hummer/infraredTr1", LaserScan, callbackIRTr1)
+	it2 = rospy.Subscriber("/hummer/infraredTr2", LaserScan, callbackIRTr2)
+	it3 = rospy.Subscriber("/hummer/infraredTr3", LaserScan, callbackIRTr3)
+	di1 = rospy.Subscriber("/hummer/infraredDi1", LaserScan, callbackIRDi1)
+	di2 = rospy.Subscriber("/hummer/infraredDi2", LaserScan, callbackIRDi2)
+	di3 = rospy.Subscriber("/hummer/infraredDi3", LaserScan, callbackIRDi3)
+	sic = rospy.Subscriber("/hummer/sick", LaserScan, callbackSick)
 
 	rospy.spin()
 

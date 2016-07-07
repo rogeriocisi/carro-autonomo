@@ -104,8 +104,9 @@ sick.frequency(10.0)
 sick.properties(laser_range = 50.0)
 hummer.append(sick)
 
-motion = MotionVW()
-hummer.append(motion)
+steerforce = SteerForce()
+steerforce.add_interface('socket')
+hummer.append(steerforce)
 
 keyboard = Keyboard()
 keyboard.properties(ControlType = 'Position')
